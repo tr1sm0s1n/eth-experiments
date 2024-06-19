@@ -30,7 +30,7 @@ func dynamicFeeTx() {
 		Nonce:     nonce,
 		To:        &to,
 		GasTipCap: big.NewInt(1000000),
-		GasFeeCap: big.NewInt(1000000000000000000),
+		GasFeeCap: big.NewInt(1000000000),
 		Gas:       21000,
 		Value:     new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil), // 1 ETH
 		Data:      nil,
