@@ -2,7 +2,10 @@ module github.com/tr1sm0s1n/eth-transactions
 
 go 1.22.3
 
-require github.com/ethereum/go-ethereum v1.14.5
+require (
+	github.com/ethereum/go-ethereum v1.14.5
+	github.com/holiman/uint256 v1.2.4
+)
 
 require (
 	github.com/DataDog/zstd v1.5.5 // indirect
@@ -42,7 +45,6 @@ require (
 	github.com/hashicorp/go-bexpr v0.1.14 // indirect
 	github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
-	github.com/holiman/uint256 v1.2.4 // indirect
 	github.com/huin/goupnp v1.3.0 // indirect
 	github.com/jackpal/go-nat-pmp v1.0.2 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
