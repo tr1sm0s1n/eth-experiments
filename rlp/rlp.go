@@ -9,7 +9,10 @@ import (
 )
 
 func main() {
+	/* Example for string splice is commented. */
+
 	data := "Hello, Ethereum!"
+	// data := []string{"Hello", "Ethereum", "!"}
 	fmt.Println("Original data:", data)
 
 	encoded, err := rlp.EncodeToBytes(data)
@@ -21,14 +24,17 @@ func main() {
 	fmt.Println("Encoded data:", encodedHex)
 
 	ptr := new(string)
+	// ptr := new([]string)
 
 	if err = rlp.DecodeBytes(encoded, ptr); err != nil {
 		panic(fmt.Sprintf("err: %s", err))
 	}
 
 	decoded := reflect.ValueOf(ptr).Elem().String()
-	if decoded != data {
+	// decoded := reflect.ValueOf(ptr).Elem().Interface()
+	if !reflect.DeepEqual(data, decoded) {
 		fmt.Println("Oops, data mismatch.")
+		return
 	}
 
 	fmt.Println("Data matched!!")
