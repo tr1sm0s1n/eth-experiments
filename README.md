@@ -1,3 +1,3 @@
-# ETH-Transactions
+# ETH-Experiments
 
-Ethereum transaction examples using Go-Ethereum.
+Reference repository for experimenting with Go-Ethereum.
