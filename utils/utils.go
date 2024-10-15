@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"crypto/ecdsa"
@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
-func generateAccount() (*ecdsa.PrivateKey, *common.Address, error) {
+func GenerateAccount() (*ecdsa.PrivateKey, *common.Address, error) {
 	key, err := crypto.GenerateKey()
 	if err != nil {
 		return nil, nil, err
@@ -21,7 +21,7 @@ func generateAccount() (*ecdsa.PrivateKey, *common.Address, error) {
 	return key, &address, nil
 }
 
-func generateBackend(faucet *common.Address) (*simulated.Backend, *big.Int) {
+func GenerateBackend(faucet *common.Address) (*simulated.Backend, *big.Int) {
 	chainID := params.AllDevChainProtocolChanges.ChainID
 
 	sim := simulated.NewBackend(map[common.Address]types.Account{

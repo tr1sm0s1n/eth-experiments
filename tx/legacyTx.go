@@ -7,18 +7,19 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/tr1sm0s1n/eth-experiments/utils"
 )
 
 func legacyTx() {
 	fmt.Println(">>> Type 0x0 Transaction: BEGIN <<<")
 
-	key, from, err := generateAccount()
+	key, from, err := utils.GenerateAccount()
 	if err != nil {
 		fmt.Println("Failed to generate key:", err)
 		return
 	}
 
-	sim, chainID := generateBackend(from)
+	sim, chainID := utils.GenerateBackend(from)
 
 	nonce, err := sim.Client().PendingNonceAt(context.Background(), *from)
 	if err != nil {

@@ -1,4 +1,4 @@
-module github.com/tr1sm0s1n/eth-transactions
+module github.com/tr1sm0s1n/eth-experiments
 
 go 1.22.3
 

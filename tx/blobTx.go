@@ -8,6 +8,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/holiman/uint256"
+	"github.com/tr1sm0s1n/eth-experiments/utils"
 )
 
 var (
@@ -19,13 +20,13 @@ var (
 func blobTx() {
 	fmt.Println(">>> Type 0x3 Transaction: BEGIN <<<")
 
-	key, from, err := generateAccount()
+	key, from, err := utils.GenerateAccount()
 	if err != nil {
 		fmt.Println("Failed to generate key:", err)
 		return
 	}
 
-	sim, chainID := generateBackend(from)
+	sim, chainID := utils.GenerateBackend(from)
 
 	nonce, err := sim.Client().PendingNonceAt(context.Background(), *from)
 	if err != nil {
