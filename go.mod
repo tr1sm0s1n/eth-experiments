@@ -5,6 +5,7 @@ go 1.22.3
 require (
 	github.com/ethereum/go-ethereum v1.14.8
 	github.com/holiman/uint256 v1.3.1
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
@@ -41,7 +42,6 @@ require (
 	github.com/golang/snappy v0.0.5-0.20220116011046-fa5810519dcb // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/websocket v1.5.3 // indirect
-	github.com/graph-gophers/graphql-go v1.3.0 // indirect
 	github.com/hashicorp/go-bexpr v0.1.14 // indirect
 	github.com/holiman/billy v0.0.0-20240322075458-72a4e81ec6da // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
@@ -58,7 +58,6 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
-	github.com/opentracing/opentracing-go v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.20.2 // indirect
 	github.com/prometheus/client_model v0.6.1 // indirect
