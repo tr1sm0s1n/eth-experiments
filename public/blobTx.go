@@ -29,25 +29,25 @@ func init() {
 func blobTx() {
 	log.Println(">>> Type 0x3 Transaction: BEGIN <<<")
 
-	sim, err := utils.DialClient()
+	client, err := utils.DialClient()
 	if err != nil {
 		log.Println("Failed to dial client:", err)
 		return
 	}
 
-	chainID, err := sim.ChainID(context.Background())
+	chainID, err := client.ChainID(context.Background())
 	if err != nil {
 		log.Println("Failed to retrieve the chain ID:", err)
 		return
 	}
 
-	auth, key, err := utils.AuthGenerator(sim)
+	auth, key, err := utils.AuthGenerator(client)
 	if err != nil {
 		log.Println("Failed to generate auth:", err)
 		return
 	}
 
-	nonce, err := sim.PendingNonceAt(context.Background(), auth.From)
+	nonce, err := client.PendingNonceAt(context.Background(), auth.From)
 	if err != nil {
 		log.Println("Failed to return nonce:", err)
 		return
@@ -72,7 +72,7 @@ func blobTx() {
 		Sidecar:    sidecar,
 	})
 
-	err = sim.SendTransaction(context.Background(), signedTx)
+	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
 		log.Println("Failed to send trx:", err)
 		return
@@ -81,7 +81,7 @@ func blobTx() {
 	log.Println("Trx Hash:", signedTx.Hash())
 
 	for {
-		r, err := sim.TransactionReceipt(context.Background(), signedTx.Hash())
+		r, err := client.TransactionReceipt(context.Background(), signedTx.Hash())
 		if err != nil {
 			log.Println("Receipt not available")
 			time.Sleep(5 * time.Second)
@@ -97,7 +97,7 @@ func blobTx() {
 		time.Sleep(5 * time.Second)
 	}
 
-	btx, _, err := sim.TransactionByHash(context.Background(), signedTx.Hash())
+	btx, _, err := client.TransactionByHash(context.Background(), signedTx.Hash())
 	if err != nil {
 		log.Println("Failed to fetch trx:", err)
 		return
