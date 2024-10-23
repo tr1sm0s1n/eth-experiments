@@ -13,12 +13,6 @@ import (
 	"github.com/tr1sm0s1n/eth-experiments/utils"
 )
 
-var (
-	emptyBlob          = new(kzg4844.Blob)
-	emptyBlobCommit, _ = kzg4844.BlobToCommitment(emptyBlob)
-	emptyBlobProof, _  = kzg4844.ComputeBlobProof(emptyBlob, emptyBlobCommit)
-)
-
 func init() {
 	err := godotenv.Load()
 	if err != nil {
@@ -28,6 +22,12 @@ func init() {
 
 func blobTx() {
 	log.Println(">>> Type 0x3 Transaction: BEGIN <<<")
+
+	myBlob := new(kzg4844.Blob)
+	copy(myBlob[:], "Hello, World!")
+
+	myBlobCommit, _ := kzg4844.BlobToCommitment(myBlob)
+	myBlobProof, _ := kzg4844.ComputeBlobProof(myBlob, myBlobCommit)
 
 	client, err := utils.DialClient()
 	if err != nil {
@@ -56,9 +56,9 @@ func blobTx() {
 	to := common.Address{0x03, 0x04, 0x05}
 
 	sidecar := &types.BlobTxSidecar{
-		Blobs:       []kzg4844.Blob{*emptyBlob},
-		Commitments: []kzg4844.Commitment{emptyBlobCommit},
-		Proofs:      []kzg4844.Proof{emptyBlobProof},
+		Blobs:       []kzg4844.Blob{*myBlob},
+		Commitments: []kzg4844.Commitment{myBlobCommit},
+		Proofs:      []kzg4844.Proof{myBlobProof},
 	}
 
 	signedTx, _ := types.SignNewTx(key, types.LatestSignerForChainID(chainID), &types.BlobTx{
