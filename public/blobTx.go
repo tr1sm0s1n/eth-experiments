@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
@@ -31,26 +32,22 @@ func blobTx() {
 
 	client, err := utils.DialClient()
 	if err != nil {
-		log.Println("Failed to dial client:", err)
-		return
+		log.Fatal("Failed to dial client:", err)
 	}
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
-		log.Println("Failed to retrieve the chain ID:", err)
-		return
+		log.Fatal("Failed to retrieve the chain ID:", err)
 	}
 
 	auth, key, err := utils.AuthGenerator(client)
 	if err != nil {
-		log.Println("Failed to generate auth:", err)
-		return
+		log.Fatal("Failed to generate auth:", err)
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), auth.From)
 	if err != nil {
-		log.Println("Failed to return nonce:", err)
-		return
+		log.Fatal("Failed to return nonce:", err)
 	}
 
 	to := common.Address{0x03, 0x04, 0x05}
@@ -74,8 +71,7 @@ func blobTx() {
 
 	err = client.SendTransaction(context.Background(), signedTx)
 	if err != nil {
-		log.Println("Failed to send trx:", err)
-		return
+		log.Fatal("Failed to send trx:", err)
 	}
 
 	log.Println("Trx Hash:", signedTx.Hash())
@@ -83,9 +79,13 @@ func blobTx() {
 	for {
 		r, err := client.TransactionReceipt(context.Background(), signedTx.Hash())
 		if err != nil {
-			log.Println("Receipt not available")
-			time.Sleep(5 * time.Second)
-			continue
+			if err == ethereum.NotFound {
+				log.Println("Receipt not available")
+				time.Sleep(5 * time.Second)
+				continue
+			} else {
+				log.Fatal("Failed to get receipt:", err)
+			}
 		}
 
 		if r.Status == 1 {
@@ -99,13 +99,11 @@ func blobTx() {
 
 	btx, _, err := client.TransactionByHash(context.Background(), signedTx.Hash())
 	if err != nil {
-		log.Println("Failed to fetch trx:", err)
-		return
+		log.Fatal("Failed to fetch trx:", err)
 	}
 
 	if btx.BlobHashes()[0] != sidecar.BlobHashes()[0] {
-		log.Println("Failed to verify blob hashes")
-		return
+		log.Fatal("Failed to verify blob hashes")
 	}
 
 	log.Println(">>> Type 0x3 Transaction: END <<<")
