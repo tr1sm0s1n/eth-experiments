@@ -9,3 +9,8 @@ dependencies = [
     "py-evm>=0.10.1b2",
     "web3>=7.4.0",
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "ruff>=0.7.2",
+]
