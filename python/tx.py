@@ -1,5 +1,6 @@
 from web3 import Web3, EthereumTesterProvider
 
+
 def main():
     w3 = Web3(EthereumTesterProvider())
 
@@ -10,14 +11,12 @@ def main():
 
     # when using one of its generated test accounts,
     # eth-tester signs the tx (under the hood) before sending:
-    tx_hash = w3.eth.send_transaction({
-        "from": acct1,
-        "to": some_address,
-        "value": 123123123123123
-    })
+    tx_hash = w3.eth.send_transaction(
+        {"from": acct1, "to": some_address, "value": 123123123123123}
+    )
 
     tx = w3.eth.get_transaction(tx_hash)
-    assert tx["from"] == acct1 
+    assert tx["from"] == acct1
 
 
 if __name__ == "__main__":
