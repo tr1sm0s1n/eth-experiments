@@ -11,6 +11,8 @@ Reference repository for experimenting with Go-Ethereum and web3.py.
 
 ## Blob Transaction Example
 
+### Go-Ethereum
+
 Create a `.env` file and add the following:
 
 ```sh
@@ -22,4 +24,24 @@ Send a blob transaction to the given network:
 
 ```sh
 go run public/blobTx.go
+```
+
+### web3.py
+
+Copy the `.env` file to the `/python` folder:
+
+```sh
+cp .env ./python/
+```
+
+Install `uv`, an extremely fast Python package and project manager:
+
+```sh
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Send a blob transaction to the given network:
+
+```sh
+cd ./python/ && uv run blobTx.py
 ```
