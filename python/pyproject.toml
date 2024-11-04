@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "eth-tester>=0.12.0b2",
     "py-evm>=0.10.1b2",
+    "python-dotenv>=1.0.1",
     "web3>=7.4.0",
 ]
 
