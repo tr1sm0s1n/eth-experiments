@@ -53,9 +53,9 @@ func blobTx() {
 	to := common.Address{0x03, 0x04, 0x05}
 
 	sidecar := &types.BlobTxSidecar{
-		Blobs:       []kzg4844.Blob{*myBlob},
-		Commitments: []kzg4844.Commitment{myBlobCommit},
-		Proofs:      []kzg4844.Proof{myBlobProof},
+		Blobs:       []kzg4844.Blob{*myBlob, *myBlob, *myBlob, *myBlob, *myBlob, *myBlob},
+		Commitments: []kzg4844.Commitment{myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit},
+		Proofs:      []kzg4844.Proof{myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof},
 	}
 
 	signedTx, _ := types.SignNewTx(key, types.LatestSignerForChainID(chainID), &types.BlobTx{
