@@ -4,4 +4,5 @@ func main() {
 	legacyTx()
 	dynamicFeeTx()
 	blobTx()
+	setCodeTx()
 }
