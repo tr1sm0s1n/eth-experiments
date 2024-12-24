@@ -1,11 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/tr1sm0s1n/eth-experiments/utils"
 )
 
@@ -53,21 +56,59 @@ func accessListTx() {
 		return
 	}
 
-	_, _, storage, err := bind.DeployContract(auth, *parsed, common.FromHex(StorageMetaData.Bin), sim.Client())
+	caddress, _, storage, err := bind.DeployContract(auth, *parsed, common.FromHex(StorageMetaData.Bin), sim.Client())
 	if err != nil {
 		fmt.Println("Failed to deploy contract:", err)
 		return
 	}
 
 	sim.Commit()
+	fmt.Println("    Contract Address:", caddress)
 
-	_, err = storage.Transact(auth, "store", "Hello, World!")
+	input, err := parsed.Pack("store", "Hello, World!")
 	if err != nil {
-		fmt.Println("Failed to store message:", err)
+		fmt.Println("Failed to pack store:", err)
+		return
+	}
+
+	nonce, err := sim.Client().PendingNonceAt(context.Background(), *from)
+	if err != nil {
+		fmt.Println("Failed to fetch nonce:", err)
+		return
+	}
+
+	signedTx, _ := types.SignNewTx(key, types.LatestSignerForChainID(chainID), &types.AccessListTx{
+		Nonce:    nonce,
+		To:       &caddress,
+		GasPrice: big.NewInt(1000000000),
+		Gas:      48000,
+		Data:     input,
+		AccessList: []types.AccessTuple{
+			{
+				Address:     caddress,
+				StorageKeys: []common.Hash{{0x0}},
+			},
+		},
+	})
+
+	err = sim.Client().SendTransaction(context.Background(), signedTx)
+	if err != nil {
+		fmt.Println("Failed to send trx:", err)
 		return
 	}
 
 	sim.Commit()
+
+	r, err := sim.Client().TransactionReceipt(context.Background(), signedTx.Hash())
+	if err != nil {
+		fmt.Println("Failed to generate receipt:", err)
+		return
+	}
+
+	if r.Status != 1 {
+		fmt.Println("Failed to commit trx")
+		return
+	}
 
 	var out []interface{}
 	if err := storage.Call(nil, &out, "retrieve"); err != nil {
