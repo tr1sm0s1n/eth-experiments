@@ -11,12 +11,6 @@ import (
 	"github.com/tr1sm0s1n/eth-experiments/utils"
 )
 
-var (
-	emptyBlob          = new(kzg4844.Blob)
-	emptyBlobCommit, _ = kzg4844.BlobToCommitment(emptyBlob)
-	emptyBlobProof, _  = kzg4844.ComputeBlobProof(emptyBlob, emptyBlobCommit)
-)
-
 func blobTx() {
 	fmt.Println(">>> Type 0x3 Transaction: BEGIN <<<")
 
@@ -28,6 +22,14 @@ func blobTx() {
 
 	sim, chainID := utils.GenerateBackend(from)
 
+	myBlob := new(kzg4844.Blob)
+	blobData := "Hello, World!"
+	copy(myBlob[:], []byte(blobData))
+	fmt.Println("    Blob:", blobData)
+
+	myBlobCommit, _ := kzg4844.BlobToCommitment(myBlob)
+	myBlobProof, _ := kzg4844.ComputeBlobProof(myBlob, myBlobCommit)
+
 	nonce, err := sim.Client().PendingNonceAt(context.Background(), *from)
 	if err != nil {
 		fmt.Println("Failed to fetch nonce:", err)
@@ -37,9 +39,9 @@ func blobTx() {
 	to := common.Address{0x03, 0x04, 0x05}
 
 	sidecar := &types.BlobTxSidecar{
-		Blobs:       []kzg4844.Blob{*emptyBlob},
-		Commitments: []kzg4844.Commitment{emptyBlobCommit},
-		Proofs:      []kzg4844.Proof{emptyBlobProof},
+		Blobs:       []kzg4844.Blob{*myBlob},
+		Commitments: []kzg4844.Commitment{myBlobCommit},
+		Proofs:      []kzg4844.Proof{myBlobProof},
 	}
 
 	signedTx, _ := types.SignNewTx(key, types.LatestSignerForChainID(chainID), &types.BlobTx{
@@ -83,5 +85,6 @@ func blobTx() {
 		return
 	}
 
+	fmt.Println("    Blob Hash:", btx.BlobHashes()[0])
 	fmt.Println(">>> Type 0x3 Transaction: END <<<")
 }
