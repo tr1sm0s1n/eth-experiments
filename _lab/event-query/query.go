@@ -7,56 +7,47 @@ import (
 	"math/big"
 	"os"
 
+	// "os"
+
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+
+	// "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func getBlocksLimit(instance *cmn.Datastore, topic string) (*big.Int, *big.Int, error) {
-	r, err := instance.EventCount(nil, topic)
-	if err != nil {
-		return nil, nil, err
-	}
-	return r.Start, r.End, nil
-}
-
-func fetchLogs(instance *cmn.Datastore, start, end *big.Int, examNo string) (*cmn.DatastoreDataStored, error) {
-	e := end.Uint64()
-	eventIterator, err := instance.FilterDataStored(&bind.FilterOpts{
-		Start: start.Uint64(),
-		End:   &e,
-	}, []string{examNo})
-	if err != nil {
-		return nil, err
-	}
-
-	events, err := instance.ParseDataStored(eventIterator.Event.Raw)
-	if err != nil {
-		return nil, err
-	}
-
-	return events, nil
-}
+var (
+	// Make sure aetherguild/druid is running.
+	providerUrl = "http://127.0.0.1:8545"
+	// Replace after deployment.
+	contractAddress = common.HexToAddress("0x3A220f351252089D385b29beca14e27F204c296A")
+)
 
 func main() {
-	providerUrl, ok := os.LookupEnv("RPC_URL")
-	if !ok {
-		log.Fatal("RPC_URL is not found")
+	if len(os.Args) < 2 {
+		log.Println("Not enough! 👾")
+		return
 	}
 
-	contractAddress, ok := os.LookupEnv("CONTRACT_ADDRESS")
-	if !ok {
-		log.Fatal("CONTRACT_ADDRESS is not found")
+	switch os.Args[1] {
+	case "1":
+		fetchComplex()
+	case "2":
+		fetchNormal()
+	default:
+		log.Println("Not right! 👾")
 	}
+}
 
-	addressHex := common.HexToAddress(contractAddress)
-
+func fetchComplex() {
 	client, err := ethclient.Dial(providerUrl)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	instance, err := cmn.NewDatastore(addressHex, client)
+	instance, err := cmn.NewDatastore(contractAddress, client)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,13 +59,102 @@ func main() {
 
 	log.Println("Latest block:", latest)
 
-	start, end, err := getBlocksLimit(instance, "topic")
+	start, end, err := getBlocksLimit(instance, "TENK")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = fetchLogs(instance, start, end, "examNo")
+	log.Println("Range:", start, end)
+
+	events, err := fetchLogs(instance, start, end, "TENK")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	log.Println("Events:", events)
+}
+
+func fetchNormal() {
+	client, err := ethclient.Dial(providerUrl)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	instance, err := cmn.NewDatastore(contractAddress, client)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	latest, err := client.BlockNumber(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Latest block:", latest)
+
+	start, end, err := getBlocksLimit(instance, "TENK")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Range:", start, end)
+
+	query := ethereum.FilterQuery{
+		FromBlock: start,
+		ToBlock:   end,
+		Addresses: []common.Address{
+			contractAddress,
+		},
+	}
+
+	logs, err := client.FilterLogs(context.Background(), query)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	eventSigHash := crypto.Keccak256Hash([]byte("Stored(string,string[])"))
+	examNoHash := crypto.Keccak256Hash([]byte("TENK"))
+	logEvents := []cmn.DatastoreStored{}
+
+	for _, vLog := range logs {
+		switch {
+		case vLog.Topics[0].Hex() == eventSigHash.Hex() && vLog.Topics[1] == examNoHash:
+			vv, err := instance.ParseStored(vLog)
+			if err != nil {
+				log.Fatal(err)
+			}
+			logEvents = append(logEvents, *vv)
+		}
+	}
+
+	log.Println("Events:", logEvents)
+}
+
+func getBlocksLimit(instance *cmn.Datastore, topic string) (*big.Int, *big.Int, error) {
+	r, err := instance.EventCount(nil, topic)
+	if err != nil {
+		return nil, nil, err
+	}
+	return r.Start, r.End, nil
+}
+
+func fetchLogs(instance *cmn.Datastore, start, end *big.Int, examNo string) (*cmn.DatastoreStored, error) {
+	e := end.Uint64()
+	eventIterator, err := instance.FilterStored(&bind.FilterOpts{
+		Start: start.Uint64(),
+		End:   &e,
+	}, []string{examNo})
+	if err != nil {
+		return nil, err
+	}
+
+	eventIterator.Next()
+	eventIterator.Close()
+
+	events, err := instance.ParseStored(eventIterator.Event.Raw)
+	if err != nil {
+		return nil, err
+	}
+
+	return events, nil
 }
