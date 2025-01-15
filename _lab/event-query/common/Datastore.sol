@@ -2,7 +2,7 @@
 pragma solidity >=0.8.2 <0.9.0;
 
 contract DataStore {
-    event Stored(string exam_no, string data);
+    event Stored(string indexed exam_no, string data);
 
     struct EventInfo {
         uint start;
