@@ -10,9 +10,9 @@
 			},
 			{
 				"indexed": false,
-				"internalType": "string",
+				"internalType": "string[]",
 				"name": "data",
-				"type": "string"
+				"type": "string[]"
 			}
 		],
 		"name": "Stored",
