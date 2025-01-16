@@ -153,7 +153,7 @@ func authGenerator(client *ethclient.Client, key string) (*bind.TransactOpts, er
 
 func waitForReceipt(client *ethclient.Client, trx *types.Transaction) error {
 	for {
-		_, pending, err := client.TransactionByHash(context.Background(), trx.Hash())
+		r, err := client.TransactionReceipt(context.Background(), trx.Hash())
 		if err != nil {
 			if err == ethereum.NotFound {
 				time.Sleep(time.Second)
@@ -162,7 +162,7 @@ func waitForReceipt(client *ethclient.Client, trx *types.Transaction) error {
 			return err
 		}
 
-		if !pending {
+		if r.Status == types.ReceiptStatusSuccessful {
 			log.Println("Transaction has been committed!!")
 			break
 		}
