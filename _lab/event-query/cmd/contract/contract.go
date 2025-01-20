@@ -46,7 +46,6 @@ func deployContract() {
 	}
 
 	log.Printf("Contract Address: \033[32m%s\033[0m\n", contractAddress.String())
-	log.Printf("Transaction Hash: \033[32m%s\033[0m\n", trx.Hash())
 }
 
 func writeContract() {
@@ -85,8 +84,6 @@ func writeContract() {
 	if err := middlewares.WaitForReceipt(client, trx); err != nil {
 		log.Fatal(err)
 	}
-
-	log.Printf("Transaction Hash: \033[32m%s\033[0m\n", trx.Hash())
 }
 
 func readCSV(filePath string) ([][]string, error) {

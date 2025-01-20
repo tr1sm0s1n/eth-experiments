@@ -23,6 +23,7 @@ func WaitForReceipt(client *ethclient.Client, trx *types.Transaction) error {
 
 		if r.Status == types.ReceiptStatusSuccessful {
 			log.Println("Transaction has been committed!!")
+			log.Printf("Transaction Hash: \033[35m%s\033[0m\n", r.TxHash)
 			break
 		}
 
