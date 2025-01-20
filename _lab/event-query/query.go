@@ -7,22 +7,11 @@ import (
 	"math/big"
 	"os"
 
-	// "os"
-
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-
-	// "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
-)
-
-var (
-	// Make sure aetherguild/druid is running.
-	providerUrl = "http://127.0.0.1:8545"
-	// Replace after deployment.
-	contractAddress = common.HexToAddress("0x3A220f351252089D385b29beca14e27F204c296A")
 )
 
 func main() {
@@ -42,12 +31,12 @@ func main() {
 }
 
 func fetchComplex() {
-	client, err := ethclient.Dial(providerUrl)
+	client, err := ethclient.Dial(cmn.ProviderURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	instance, err := cmn.NewDatastore(contractAddress, client)
+	instance, err := cmn.NewDatastore(cmn.ContractAddress, client)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -75,12 +64,12 @@ func fetchComplex() {
 }
 
 func fetchNormal() {
-	client, err := ethclient.Dial(providerUrl)
+	client, err := ethclient.Dial(cmn.ProviderURL)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	instance, err := cmn.NewDatastore(contractAddress, client)
+	instance, err := cmn.NewDatastore(cmn.ContractAddress, client)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,7 +92,7 @@ func fetchNormal() {
 		FromBlock: start,
 		ToBlock:   end,
 		Addresses: []common.Address{
-			contractAddress,
+			cmn.ContractAddress,
 		},
 	}
 

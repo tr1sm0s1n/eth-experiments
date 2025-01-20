@@ -14,15 +14,13 @@ import (
 )
 
 func main() {
-	client, err := ethclient.Dial("ws://127.0.0.1:8546")
+	client, err := ethclient.Dial(cmn.WebSocketURL)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	contractAddress := common.HexToAddress("0x3A220f351252089D385b29beca14e27F204c296A")
-
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{contractAddress},
+		Addresses: []common.Address{cmn.ContractAddress},
 	}
 
 	certABI, err := abi.JSON(strings.NewReader(cmn.DatastoreMetaData.ABI))
