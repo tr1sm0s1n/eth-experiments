@@ -1,6 +1,9 @@
 package common
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
+)
 
 var (
 	// Make sure aetherguild/druid is running.
@@ -16,5 +19,8 @@ var (
 	// Number of workers.
 	MaxWorkers = 4
 	// Number of rows taken for one transaction.
-	BatchSize = 1000
+	// Signature hash of the major event.
+	EventSignature = crypto.Keccak256Hash([]byte("Stored(string,string[])"))
+	// Topic hash for the exam filter.
+	FilterTopic = crypto.Keccak256Hash([]byte("TENK"))
 )
