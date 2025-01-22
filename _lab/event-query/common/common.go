@@ -19,6 +19,7 @@ var (
 	// Number of workers.
 	MaxWorkers = 4
 	// Number of rows taken for one transaction.
+	BatchSize = 1000
 	// Signature hash of the major event.
 	EventSignature = crypto.Keccak256Hash([]byte("Stored(string,string[])"))
 	// Topic hash for the exam filter.
