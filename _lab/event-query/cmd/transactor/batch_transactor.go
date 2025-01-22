@@ -89,12 +89,13 @@ func main() {
 	// Send remaining payload
 	if len(currentBatch) > 0 {
 		payloadChan <- currentBatch
+		<-receiptChan
 	}
 
 	// Clean up
 	close(payloadChan)
-	close(receiptChan)
 	wg.Wait()
+	close(receiptChan)
 	close(errorsChan)
 
 	log.Printf("Processed \033[45m%d\033[0m payload!!", processCount)
