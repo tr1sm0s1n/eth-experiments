@@ -14,10 +14,17 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-type blockspan struct {
+type blockSpan struct {
 	start int64
 	end   int64
 }
+
+var (
+	// Slice to store 'Stored' events
+	events []cmn.DatastoreStored
+	// To prevent race condition
+	mu sync.Mutex
+)
 
 func main() {
 	client, err := ethclient.Dial(cmn.ProviderURL)
@@ -36,12 +43,9 @@ func main() {
 	}
 
 	// Create channels for processing
-	payloadChan := make(chan blockspan)
-	dataChan := make(chan *cmn.DatastoreStored)
+	payloadChan := make(chan blockSpan)
+	resultChan := make(chan bool)
 	errorsChan := make(chan error)
-
-	// Slice to store 'Stored' events
-	events := make([]cmn.DatastoreStored, 0)
 
 	// Context for graceful shutdown
 	ctx, cancel := context.WithCancel(context.Background())
@@ -51,15 +55,8 @@ func main() {
 	var wg sync.WaitGroup
 	for i := 0; i < cmn.MaxWorkers; i++ {
 		wg.Add(1)
-		go worker(ctx, &wg, client, instance, payloadChan, dataChan, errorsChan)
+		go worker(ctx, &wg, client, instance, payloadChan, resultChan, errorsChan)
 	}
-
-	// Data handling goroutine
-	go func() {
-		for data := range dataChan {
-			events = append(events, *data)
-		}
-	}()
 
 	// Error handling goroutine
 	go func() {
@@ -68,31 +65,33 @@ func main() {
 		}
 	}()
 
-	span := blockspan{start: dataRange.Start.Int64(), end: dataRange.Start.Int64() + 200}
+	span := blockSpan{start: dataRange.Start.Int64(), end: dataRange.Start.Int64() + cmn.BlockRange}
 
 	for {
-		if span.end < dataRange.End.Int64() {
-			payloadChan <- span
-			<-dataChan
-			span.start = span.end
-			span.end = span.end + 200
-		} else {
-			span.end = dataRange.End.Int64()
-			payloadChan <- span
+		if span.end >= dataRange.End.Int64() {
 			break
 		}
+		payloadChan <- span
+		<-resultChan
+		span.end++
+		span.start = span.end
+		span.end = span.end + cmn.BlockRange
 	}
+
+	span.end = dataRange.End.Int64()
+	payloadChan <- span
+	<-resultChan
 
 	// Clean up
 	close(payloadChan)
 	wg.Wait()
-	close(dataChan)
+	close(resultChan)
 	close(errorsChan)
 
 	log.Printf("Retrieved \033[45m%d\033[0m event logs!!", len(events))
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockspan, data chan<- *cmn.DatastoreStored, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockSpan, result chan<- bool, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -125,9 +124,12 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 						errors <- fmt.Errorf("failed to parse logs: %v", err)
 					}
 
-					data <- parsed
+					mu.Lock()
+					events = append(events, *parsed)
+					mu.Unlock()
 				}
 			}
+			result <- true
 		}
 	}
 }
