@@ -20,6 +20,8 @@ var (
 	MaxWorkers = 4
 	// Number of rows taken for one transaction.
 	BatchSize = 1000
+	// Block range for event log processing.
+	BlockRange int64 = 200
 	// Signature hash of the major event.
 	EventSignature = crypto.Keccak256Hash([]byte("Stored(string,string[])"))
 	// Topic hash for the exam filter.
