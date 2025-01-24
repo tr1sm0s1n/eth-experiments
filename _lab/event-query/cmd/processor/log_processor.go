@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	_ "net/http/pprof"
+	"os"
+	"runtime/pprof"
 	"sync"
+
 	// "time"
 
 	"github.com/ethereum/go-ethereum"
@@ -27,6 +31,10 @@ var (
 )
 
 func main() {
+	f, _ := os.Create("cpu.prof")
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
+
 	client, err := ethclient.Dial(cmn.ProviderURL)
 	if err != nil {
 		log.Fatalf("Failed to connect client: %v", err)
