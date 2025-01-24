@@ -8,6 +8,7 @@ use alloy::{
     sol,
     sol_types::SolEvent,
 };
+use event_query::constants::{CONTRACT_ADDRESS, WS_URL};
 use eyre::Result;
 use futures::stream::StreamExt;
 
@@ -19,18 +20,12 @@ sol!(
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let rpc_url = "ws://127.0.0.1:8546";
-
     // Create the provider.
-    let ws = WsConnect::new(rpc_url);
+    let ws = WsConnect::new(WS_URL);
     let provider = ProviderBuilder::new().on_ws(ws).await?;
 
     let filter = Filter::new()
-        .address(
-            "0x3A220f351252089D385b29beca14e27F204c296A"
-                .parse::<Address>()
-                .unwrap(),
-        )
+        .address(CONTRACT_ADDRESS.parse::<Address>().unwrap())
         // By specifying an `event` or `event_signature` we listen for a specific event of the contract.
         .event(Datastore::Stored::SIGNATURE)
         .from_block(BlockNumberOrTag::Latest);
