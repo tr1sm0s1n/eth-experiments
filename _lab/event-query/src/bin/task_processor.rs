@@ -10,6 +10,7 @@ use alloy::{
 };
 use event_query::constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL};
 use eyre::Result;
+use futures::future::join_all;
 use tokio::{spawn, sync::Mutex};
 use Datastore::Stored;
 
@@ -24,8 +25,6 @@ async fn main() -> Result<()> {
     // Use a concurrent-friendly data structure for better performance
     let events: Arc<Mutex<Vec<Stored>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let mut handles = Vec::new();
-
     let rpc_url = RPC_URL.parse()?;
     let provider = ProviderBuilder::new().on_http(rpc_url);
     let instance = Datastore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
@@ -39,17 +38,22 @@ async fn main() -> Result<()> {
         calculate_block_ranges(range.start.to::<u64>(), range.end.to::<u64>(), BLOCK_RANGE);
 
     // Use join_all for more efficient concurrent processing
-    let _ = block_ranges.into_iter().map(|(start, end)| {
-        let provider = provider.clone();
-        let events = events.clone();
-        handles.push(spawn(async move {
-            fetch_logs(&provider, filter_topic, &events, start, end).await
-        }));
-    });
+    let fetch_futures =
+        block_ranges.into_iter().map(|(start, end)| {
+            let provider_clone = provider.clone();
+            let events_clone = events.clone();
 
-    // Wait for all tasks to complete
-    for handle in handles {
-        handle.await??; // Propagate any potential errors
+            spawn(async move {
+                fetch_logs(&provider_clone, filter_topic, &events_clone, start, end).await
+            })
+        });
+
+    // Wait for all fetch tasks to complete
+    let results = join_all(fetch_futures).await;
+
+    // Handle any errors from the fetching tasks
+    for result in results {
+        result??;
     }
 
     // Atomic read of events length for thread-safe logging
