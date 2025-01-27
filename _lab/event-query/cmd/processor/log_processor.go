@@ -71,22 +71,19 @@ func main() {
 		}
 	}()
 
-	span := blockSpan{start: dataRange.Start.Int64(), end: dataRange.Start.Int64() + cmn.BlockRange}
+	// log.Println("Range:", dataRange.Start.Int64(), dataRange.Start.Int64())
+	span := blockSpan{start: dataRange.Start.Int64()}
 
 	for {
-		if span.end >= dataRange.End.Int64() {
+		if span.start > dataRange.End.Int64() {
 			break
 		}
+		span.end = min(span.start+cmn.BlockRange, dataRange.End.Int64())
+		// log.Println("Loop:", span.start, span.end)
 		payloadChan <- span
 		<-resultChan
-		span.end++
-		span.start = span.end
-		span.end = span.end + cmn.BlockRange
+		span.start = span.end + 1
 	}
-
-	span.end = dataRange.End.Int64()
-	payloadChan <- span
-	<-resultChan
 
 	// Clean up
 	close(payloadChan)
