@@ -7,11 +7,9 @@ import (
 	"log"
 	"math/big"
 	_ "net/http/pprof"
-	"os"
-	"runtime/pprof"
+	_ "os"
+	_ "runtime/pprof"
 	"sync"
-
-	// "time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
@@ -31,9 +29,9 @@ var (
 )
 
 func main() {
-	f, _ := os.Create("cpu.prof")
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+	// f, _ := os.Create("cpu.prof")
+	// pprof.StartCPUProfile(f)
+	// defer pprof.StopCPUProfile()
 
 	client, err := ethclient.Dial(cmn.ProviderURL)
 	if err != nil {
