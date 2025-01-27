@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.2 <0.9.0;
+pragma solidity 0.8.18;
 
 contract DataStore {
     event Stored(string indexed exam_no, string[] data);
