@@ -60,7 +60,7 @@ func fetchComplex() {
 		log.Fatal(err)
 	}
 
-	log.Println("Events:", events)
+	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
 }
 
 func fetchNormal() {
@@ -116,7 +116,7 @@ func fetchNormal() {
 		}
 	}
 
-	log.Println("Events:", logEvents)
+	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(logEvents))
 }
 
 func getBlocksLimit(instance *cmn.Datastore, topic string) (*big.Int, *big.Int, error) {
@@ -127,7 +127,8 @@ func getBlocksLimit(instance *cmn.Datastore, topic string) (*big.Int, *big.Int, 
 	return r.Start, r.End, nil
 }
 
-func fetchLogs(instance *cmn.Datastore, start, end *big.Int, examNo string) (*cmn.DatastoreStored, error) {
+func fetchLogs(instance *cmn.Datastore, start, end *big.Int, examNo string) ([]cmn.DatastoreStored, error) {
+	logEvents := make([]cmn.DatastoreStored, 0)
 	e := end.Uint64()
 	eventIterator, err := instance.FilterStored(&bind.FilterOpts{
 		Start: start.Uint64(),
@@ -136,14 +137,21 @@ func fetchLogs(instance *cmn.Datastore, start, end *big.Int, examNo string) (*cm
 	if err != nil {
 		return nil, err
 	}
+	defer eventIterator.Close()
 
-	eventIterator.Next()
-	eventIterator.Close()
-
-	events, err := instance.ParseStored(eventIterator.Event.Raw)
-	if err != nil {
-		return nil, err
+	for {
+		if !eventIterator.Next() {
+			if eventIterator.Error() != nil {
+				return nil, eventIterator.Error()
+			}
+			break
+		}
+		ev, err := instance.ParseStored(eventIterator.Event.Raw)
+		if err != nil {
+			return nil, err
+		}
+		logEvents = append(logEvents, *ev)
 	}
 
-	return events, nil
+	return logEvents, nil
 }
