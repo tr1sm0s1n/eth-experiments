@@ -11,19 +11,21 @@ var (
 	// WebSocket URL for listener.
 	WebSocketURL = "ws://127.0.0.1:8546"
 	// Private key of aetherguild faucet.
-	PrivateKey = "0xb71c71a67e1177ad4e901695e1b4b9ee17ae16c6668d313eac2f96dbcda3f291"
+	PrivateKey = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 	// Replace after deployment.
-	ContractAddress = common.HexToAddress("0x3A220f351252089D385b29beca14e27F204c296A")
+	ContractAddress = common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3")
 	// Location of .csv file.
-	CSVFile = "./marklist.csv"
+	CSVFile = "./test.csv"
 	// Number of workers.
-	MaxWorkers = 4
+	MaxWorkers = 10
 	// Number of rows taken for one transaction.
 	BatchSize = 1000
 	// Block range for event log processing.
 	BlockRange int64 = 200
 	// Signature hash of the major event.
 	EventSignature = crypto.Keccak256Hash([]byte("Stored(string,string[])"))
+	// To query the block range and apply filtering.
+	ExamTitle = "TEST01"
 	// Topic hash for the exam filter.
-	FilterTopic = crypto.Keccak256Hash([]byte("TENK"))
+	FilterTopic = crypto.Keccak256Hash([]byte(ExamTitle))
 )

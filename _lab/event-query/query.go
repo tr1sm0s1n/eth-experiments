@@ -10,7 +10,6 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -48,14 +47,14 @@ func fetchComplex() {
 
 	log.Println("Latest block:", latest)
 
-	start, end, err := getBlocksLimit(instance, "TENK")
+	start, end, err := getBlocksLimit(instance, cmn.ExamTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	log.Println("Range:", start, end)
 
-	events, err := fetchLogs(instance, start, end, "TENK")
+	events, err := fetchLogs(instance, start, end, cmn.ExamTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,7 +80,7 @@ func fetchNormal() {
 
 	log.Println("Latest block:", latest)
 
-	start, end, err := getBlocksLimit(instance, "TENK")
+	start, end, err := getBlocksLimit(instance, cmn.ExamTitle)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -101,13 +100,11 @@ func fetchNormal() {
 		log.Fatal(err)
 	}
 
-	eventSigHash := crypto.Keccak256Hash([]byte("Stored(string,string[])"))
-	examNoHash := crypto.Keccak256Hash([]byte("TENK"))
 	logEvents := []cmn.DatastoreStored{}
 
 	for _, vLog := range logs {
 		switch {
-		case vLog.Topics[0].Hex() == eventSigHash.Hex() && vLog.Topics[1] == examNoHash:
+		case vLog.Topics[0].Hex() == cmn.EventSignature.Hex() && vLog.Topics[1] == cmn.FilterTopic:
 			vv, err := instance.ParseStored(vLog)
 			if err != nil {
 				log.Fatal(err)
