@@ -17,11 +17,11 @@ var (
 	// Location of .csv file.
 	CSVFile = "./test.csv"
 	// Number of workers.
-	MaxWorkers = 10
+	MaxWorkers = 7
 	// Number of rows taken for one transaction.
 	BatchSize = 1000
 	// Block range for event log processing.
-	BlockRange int64 = 200
+	BlockRange int64 = 500
 	// Signature hash of the major event.
 	EventSignature = crypto.Keccak256Hash([]byte("Stored(string,string[])"))
 	// To query the block range and apply filtering.

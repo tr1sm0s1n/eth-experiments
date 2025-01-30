@@ -34,7 +34,7 @@ func main() {
 		log.Fatalf("Failed to create instance: %v", err)
 	}
 
-	dataRange, err := instance.EventCount(nil, "TENK")
+	dataRange, err := instance.EventCount(nil, cmn.ExamTitle)
 	if err != nil {
 		log.Fatalf("Failed to query event count: %v", err)
 	}
