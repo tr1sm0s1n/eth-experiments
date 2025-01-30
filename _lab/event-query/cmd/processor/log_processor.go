@@ -70,7 +70,7 @@ func main() {
 		}
 	}()
 
-	// log.Println("Range:", dataRange.Start.Int64(), dataRange.Start.Int64())
+	log.Printf("Data Range: [\033[1;36m%d\033[0m] -> [\033[1;36m%d\033[0m]\n", dataRange.Start.Int64(), dataRange.End.Int64())
 	span := blockSpan{start: dataRange.Start.Int64()}
 
 	for {
@@ -78,19 +78,17 @@ func main() {
 			break
 		}
 		span.end = min(span.start+cmn.BlockRange, dataRange.End.Int64())
-		// log.Println("Loop:", span.start, span.end)
+		log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", span.start, span.end)
 		payloadChan <- span
-		<-resultChan
 		span.start = span.end + 1
 	}
 
 	// Clean up
 	close(payloadChan)
 	wg.Wait()
-	close(resultChan)
 	close(errorsChan)
 
-	log.Printf("Retrieved \033[45m%d\033[0m event logs!!", len(events))
+	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
 }
 
 func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockSpan, errors chan<- error) {

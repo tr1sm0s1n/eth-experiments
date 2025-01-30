@@ -38,6 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to query event count: %v", err)
 	}
+	log.Printf("Data Range: [\033[1;36m%d\033[0m] -> [\033[1;36m%d\033[0m]\n", dataRange.Start.Int64(), dataRange.End.Int64())
 
 	// Create channels for processing
 	payloadChan := make(chan blockSpan)
@@ -67,15 +68,14 @@ func main() {
 			break
 		}
 		span.end = min(span.start+uint64(cmn.BlockRange), dataRange.End.Uint64())
+		log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", span.start, span.end)
 		payloadChan <- span
-		<-resultChan
 		span.start = span.end + 1
 	}
 
 	// Clean up
 	close(payloadChan)
 	wg.Wait()
-	close(resultChan)
 	close(errorsChan)
 
 	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
