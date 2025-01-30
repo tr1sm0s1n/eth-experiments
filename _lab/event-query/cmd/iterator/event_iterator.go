@@ -41,7 +41,6 @@ func main() {
 
 	// Create channels for processing
 	payloadChan := make(chan blockSpan)
-	resultChan := make(chan bool)
 	errorsChan := make(chan error)
 
 	// Context for graceful shutdown
@@ -52,7 +51,7 @@ func main() {
 	var wg sync.WaitGroup
 	for i := 0; i < cmn.MaxWorkers; i++ {
 		wg.Add(1)
-		go worker(ctx, &wg, instance, payloadChan, resultChan, errorsChan)
+		go worker(ctx, &wg, instance, payloadChan, errorsChan)
 	}
 
 	// Error handling goroutine
@@ -82,7 +81,7 @@ func main() {
 	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, instance *cmn.Datastore, payload <-chan blockSpan, result chan<- bool, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, instance *cmn.Datastore, payload <-chan blockSpan, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -119,8 +118,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, instance *cmn.Datastore, pa
 				events = append(events, *parsed)
 				mu.Unlock()
 			}
-
-			result <- true
 		}
 	}
 }

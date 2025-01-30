@@ -43,14 +43,13 @@ func main() {
 		log.Fatalf("Failed to create instance: %v", err)
 	}
 
-	dataRange, err := instance.EventCount(nil, "TENK")
+	dataRange, err := instance.EventCount(nil, cmn.ExamTitle)
 	if err != nil {
 		log.Fatalf("Failed to query event count: %v", err)
 	}
 
 	// Create channels for processing
 	payloadChan := make(chan blockSpan)
-	resultChan := make(chan bool)
 	errorsChan := make(chan error)
 
 	// Context for graceful shutdown
@@ -61,7 +60,7 @@ func main() {
 	var wg sync.WaitGroup
 	for i := 0; i < cmn.MaxWorkers; i++ {
 		wg.Add(1)
-		go worker(ctx, &wg, client, instance, payloadChan, resultChan, errorsChan)
+		go worker(ctx, &wg, client, instance, payloadChan, errorsChan)
 	}
 
 	// Error handling goroutine
@@ -94,7 +93,7 @@ func main() {
 	log.Printf("Retrieved \033[45m%d\033[0m event logs!!", len(events))
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockSpan, result chan<- bool, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockSpan, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -132,7 +131,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 					mu.Unlock()
 				}
 			}
-			result <- true
 		}
 	}
 }
