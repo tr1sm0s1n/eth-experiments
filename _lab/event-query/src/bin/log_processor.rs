@@ -1,3 +1,5 @@
+use std::cmp::min;
+
 use alloy::{
     primitives::{keccak256, Address, FixedBytes},
     providers::{Provider, ProviderBuilder, RootProvider},
@@ -28,24 +30,31 @@ async fn main() -> Result<()> {
     let instance = Datastore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
     // Fetch the block range.
     let range = instance.EventCount(EXAM_TITLE.to_string()).call().await?;
+    println!(
+        "Data Range: [\x1b[1;36m{:?}\x1b[0m] -> [\x1b[1;36m{:?}\x1b[0m]",
+        range.start.to::<u64>(),
+        range.end.to::<u64>()
+    );
 
     let filter_topic = keccak256(EXAM_TITLE);
 
     let mut start = range.start.to::<u64>();
-    let mut end = range.start.to::<u64>() + BLOCK_RANGE;
+    let mut end;
 
     loop {
-        if end >= range.end.to::<u64>() {
-            end = range.end.to::<u64>();
-            fetch_logs(&provider, filter_topic, &mut events, start, end).await?;
+        if start > range.end.to::<u64>() {
             break;
         }
+        end = min(start + BLOCK_RANGE, range.end.to::<u64>());
+        println!(
+            "Processing: [\x1b[1;32m{:?}\x1b[0m] -> [\x1b[1;31m{:?}\x1b[0m]",
+            start, end
+        );
         fetch_logs(&provider, filter_topic, &mut events, start, end).await?;
         start = end + 1;
-        end = end + 1 + BLOCK_RANGE;
     }
 
-    println!("Processed \x1b[34m{:?}\x1b[0m event logs!!", events.len());
+    println!("Processed \x1b[1;34m{:?}\x1b[0m event logs!!", events.len());
 
     Ok(())
 }
