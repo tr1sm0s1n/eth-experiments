@@ -10,8 +10,11 @@ use alloy::{
 };
 use event_query::constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL};
 use eyre::Result;
-use futures::future::join_all;
-use tokio::{spawn, sync::Mutex};
+use futures::{stream::FuturesUnordered, StreamExt};
+use tokio::{
+    spawn,
+    sync::{Mutex, Semaphore},
+};
 use Datastore::Stored;
 
 sol!(
@@ -24,6 +27,8 @@ sol!(
 async fn main() -> Result<()> {
     // Use a concurrent-friendly data structure for better performance
     let events: Arc<Mutex<Vec<Stored>>> = Arc::new(Mutex::new(Vec::new()));
+    let semaphore = Arc::new(Semaphore::new(6));
+    let mut fetch_futures = FuturesUnordered::new();
 
     let rpc_url = RPC_URL.parse()?;
     let provider = ProviderBuilder::new().on_http(rpc_url);
@@ -32,33 +37,39 @@ async fn main() -> Result<()> {
     // Fetch range first to avoid repeated calls
     let range = instance.EventCount(EXAM_TITLE.to_string()).call().await?;
     let filter_topic = keccak256(EXAM_TITLE);
+    println!(
+        "Data Range: [\x1b[1;36m{:?}\x1b[0m] -> [\x1b[1;36m{:?}\x1b[0m]",
+        range.start.to::<u64>(),
+        range.end.to::<u64>()
+    );
 
     // Calculate block ranges upfront to reduce runtime calculations
     let block_ranges =
         calculate_block_ranges(range.start.to::<u64>(), range.end.to::<u64>(), BLOCK_RANGE);
 
     // Use join_all for more efficient concurrent processing
-    let fetch_futures =
-        block_ranges.into_iter().map(|(start, end)| {
-            let provider_clone = provider.clone();
-            let events_clone = events.clone();
+    for (start, end) in block_ranges {
+        let provider_clone = provider.clone();
+        let events_clone = events.clone();
+        let semaphore_clone = Arc::clone(&semaphore);
 
-            spawn(async move {
-                fetch_logs(&provider_clone, filter_topic, &events_clone, start, end).await
-            })
-        });
+        fetch_futures.push(spawn(async move {
+            let _permit = semaphore_clone.acquire().await.unwrap(); // Wait for a slot
+            fetch_logs(&provider_clone, filter_topic, &events_clone, start, end).await
+        }));
+    }
 
     // Wait for all fetch tasks to complete
-    let results = join_all(fetch_futures).await;
-
-    // Handle any errors from the fetching tasks
-    for result in results {
-        result??;
+    while let Some(result) = fetch_futures.next().await {
+        // Handle any errors from the fetching tasks
+        if let Err(err) = result {
+            eprintln!("Task failed: {:?}", err);
+        }
     }
 
     // Atomic read of events length for thread-safe logging
     let event_count = events.lock().await.len();
-    println!("Processed \x1b[34m{event_count}\x1b[0m event logs!!");
+    println!("Processed \x1b[1;34m{event_count}\x1b[0m event logs!!");
 
     Ok(())
 }
@@ -70,6 +81,10 @@ async fn fetch_logs(
     start: u64,
     end: u64,
 ) -> Result<()> {
+    println!(
+        "Processing: [\x1b[1;32m{:?}\x1b[0m] -> [\x1b[1;31m{:?}\x1b[0m]",
+        start, end
+    );
     let filter = Filter::new()
         .address(CONTRACT_ADDRESS.parse::<Address>()?)
         .event(Datastore::Stored::SIGNATURE)
