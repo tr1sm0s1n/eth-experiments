@@ -28,7 +28,7 @@ func WaitForReceipt(client *ethclient.Client, trx *types.Transaction) error {
 		}
 
 		log.Println("Transaction is pending...")
-		time.Sleep(time.Second)
+		time.Sleep(10 * time.Second)
 	}
 	return nil
 }
