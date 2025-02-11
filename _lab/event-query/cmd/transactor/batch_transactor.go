@@ -41,7 +41,6 @@ func main() {
 
 	// Create channels for processing
 	payloadChan := make(chan [][]string, common.BatchSize)
-	receiptChan := make(chan bool)
 	errorsChan := make(chan error)
 
 	// Context for graceful shutdown
@@ -50,10 +49,10 @@ func main() {
 
 	// Start worker pool
 	var wg sync.WaitGroup
-	// for i := 0; i < common.MaxWorkers; i++ {
-	wg.Add(1)
-	go worker(ctx, &wg, client, instance, payloadChan, receiptChan, errorsChan)
-	// }
+	for _, t := range common.Transactors {
+		wg.Add(1)
+		go worker(ctx, &wg, client, instance, t, payloadChan, errorsChan)
+	}
 
 	// Error handling goroutine
 	go func() {
@@ -82,26 +81,23 @@ func main() {
 			// Send batch to workers
 			payloadChan <- currentBatch
 			currentBatch = make([][]string, 0, common.BatchSize)
-			<-receiptChan
 		}
 	}
 
 	// Send remaining payload
 	if len(currentBatch) > 0 {
 		payloadChan <- currentBatch
-		<-receiptChan
 	}
 
 	// Clean up
 	close(payloadChan)
 	wg.Wait()
-	close(receiptChan)
 	close(errorsChan)
 
 	log.Printf("Processed \033[45m%d\033[0m payload!!", processCount)
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *common.Datastore, payload <-chan [][]string, receipt chan<- bool, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *common.Datastore, tnr common.Transactor, payload <-chan [][]string, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -113,7 +109,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				return
 			}
 
-			auth, err := middlewares.AuthGenerator(client, common.PrivateKey)
+			auth, err := middlewares.AuthGenerator(client, tnr)
 			if err != nil {
 				errors <- fmt.Errorf("failed to generate auth: %v", err)
 			}
@@ -126,8 +122,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			if err := middlewares.WaitForReceipt(client, trx); err != nil {
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
 			}
-
-			receipt <- true
 		}
 	}
 }
