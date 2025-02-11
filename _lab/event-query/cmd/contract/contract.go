@@ -32,7 +32,7 @@ func deployContract() {
 		log.Fatal(err)
 	}
 
-	auth, err := middlewares.AuthGenerator(client, common.PrivateKey)
+	auth, err := middlewares.AuthGenerator(client, common.Transactors[0])
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +71,7 @@ func writeContract() {
 	}
 	chunk := data[:chunkSize]
 
-	auth, err := middlewares.AuthGenerator(client, common.PrivateKey)
+	auth, err := middlewares.AuthGenerator(client, common.Transactors[0])
 	if err != nil {
 		log.Fatal(err)
 	}
