@@ -50,13 +50,13 @@ func init() {
 	for _, k := range privateKeys {
 		privateKey, err := crypto.HexToECDSA(k)
 		if err != nil {
-			log.Fatalf("Failed to open CSV file: %v", err)
+			log.Fatalf("Failed to parse private key: %v", err)
 		}
 
 		publicKey := privateKey.Public()
 		publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 		if !ok {
-			log.Fatalf("error casting public key to ECDSA")
+			log.Fatalln("Error casting public key to ECDSA")
 		}
 
 		Transactors = append(Transactors, Transactor{
