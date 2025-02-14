@@ -15,7 +15,8 @@ func WaitForReceipt(client *ethclient.Client, trx *types.Transaction) error {
 		r, err := client.TransactionReceipt(context.Background(), trx.Hash())
 		if err != nil {
 			if err == ethereum.NotFound {
-				time.Sleep(time.Second)
+				log.Println("Receipt isn't available")
+				time.Sleep(10 * time.Second)
 				continue
 			}
 			return err
