@@ -15,10 +15,7 @@ async fn main() -> Result<()> {
     let signer: PrivateKeySigner = env::var("PRIVATE_KEY")?.parse()?;
     let wallet = EthereumWallet::from(signer);
     let rpc_url = env::var("RPC_URL")?.parse()?;
-    let provider = ProviderBuilder::new()
-        .with_recommended_fillers()
-        .wallet(wallet)
-        .on_http(rpc_url);
+    let provider = ProviderBuilder::new().wallet(wallet).on_http(rpc_url);
 
     let sidecar: SidecarBuilder<SimpleCoder> = SidecarBuilder::from_slice(b"Hello, Ethereum!");
     let sidecar = sidecar.build()?;
