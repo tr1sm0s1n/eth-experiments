@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 	"time"
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
 	"github.com/holiman/uint256"
 	"github.com/joho/godotenv"
@@ -40,12 +42,17 @@ func blobTx() {
 		log.Fatal("Failed to retrieve the chain ID:", err)
 	}
 
-	auth, key, err := utils.AuthGenerator(client)
+	privateKey, err := crypto.HexToECDSA(os.Getenv("PRIVATE_KEY"))
 	if err != nil {
-		log.Fatal("Failed to generate auth:", err)
+		log.Fatal("Failed to parse the private key:", err)
 	}
 
-	nonce, err := client.PendingNonceAt(context.Background(), auth.From)
+	from, err := utils.AddressGenerator(privateKey)
+	if err != nil {
+		log.Fatal("Failed to generate adress:", err)
+	}
+
+	nonce, err := client.PendingNonceAt(context.Background(), from)
 	if err != nil {
 		log.Fatal("Failed to return nonce:", err)
 	}
@@ -58,7 +65,7 @@ func blobTx() {
 		Proofs:      []kzg4844.Proof{myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof},
 	}
 
-	signedTx, _ := types.SignNewTx(key, types.LatestSignerForChainID(chainID), &types.BlobTx{
+	signedTx, _ := types.SignNewTx(privateKey, types.LatestSignerForChainID(chainID), &types.BlobTx{
 		Nonce:      nonce,
 		To:         to,
 		GasTipCap:  uint256.NewInt(1000000),
