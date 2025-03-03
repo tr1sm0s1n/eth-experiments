@@ -4,6 +4,7 @@ set -e
 execute() {
     chain_id
     block_number
+    client_version
 }
 
 req_handler() {
@@ -11,12 +12,18 @@ req_handler() {
 }
 
 res_parser() {
-    echo "$@" | grep -o '"result":"[^"]*"' | cut -d '"' -f4
+    echo "$@" | jq -r '.result'
 }
 
 chain_id() {
     response=$(req_handler '{"jsonrpc":"2.0","method":"eth_chainId","params":[],"id":1}')
     echo "Chain ID: $(res_parser "$response")"
+    return 0
+}
+
+client_version() {
+    response=$(req_handler '{"jsonrpc":"2.0","method":"web3_clientVersion","params":[],"id":1}')
+    echo "Client: $(res_parser "$response")"
     return 0
 }
 
