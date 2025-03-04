@@ -141,11 +141,16 @@ func setCodeTx() {
 		log.Fatal("Failed to pack emitHello:", err)
 	}
 
+	gasTip, err := client.SuggestGasTipCap(context.Background())
+	if err != nil {
+		log.Fatal("Failed to get gas price:", err)
+	}
+
 	signedTx, err := types.SignNewTx(secondKey, types.LatestSignerForChainID(chainID), &types.SetCodeTx{
 		Nonce:     secondNonce + 1,
 		To:        firstAcc,
-		GasTipCap: uint256.NewInt(1000000),
-		GasFeeCap: uint256.NewInt(1000000000),
+		GasTipCap: uint256.MustFromBig(gasTip),
+		GasFeeCap: uint256.MustFromBig(gasPrice),
 		Gas:       48000,
 		Data:      input,
 		AuthList:  []types.SetCodeAuthorization{auth},
