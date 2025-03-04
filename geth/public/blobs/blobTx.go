@@ -24,7 +24,7 @@ func init() {
 }
 
 func blobTx() {
-	log.Println(">>> Type 0x3 Transaction: BEGIN <<<")
+	log.Println("\033[1;36m>>> Type 0x3 Transaction: BEGIN <<<\033[0m")
 
 	myBlob := new(kzg4844.Blob)
 	copy(myBlob[:], "Hello, World!")
@@ -49,7 +49,7 @@ func blobTx() {
 
 	from, err := utils.AddressGenerator(privateKey)
 	if err != nil {
-		log.Fatal("Failed to generate adress:", err)
+		log.Fatal("Failed to generate address:", err)
 	}
 
 	nonce, err := client.PendingNonceAt(context.Background(), from)
@@ -57,23 +57,39 @@ func blobTx() {
 		log.Fatal("Failed to return nonce:", err)
 	}
 
-	to := common.Address{0x03, 0x04, 0x05}
+	to := common.HexToAddress("0x09778b53bbDFd17438c9e111995728ca80f6c5b1")
 
-	sidecar := &types.BlobTxSidecar{
-		Blobs:       []kzg4844.Blob{*myBlob, *myBlob, *myBlob, *myBlob, *myBlob, *myBlob},
-		Commitments: []kzg4844.Commitment{myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit, myBlobCommit},
-		Proofs:      []kzg4844.Proof{myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof, myBlobProof},
+	sidecar := types.BlobTxSidecar{}
+	for range 6 {
+		sidecar.Blobs = append(sidecar.Blobs, *myBlob)
+		sidecar.Commitments = append(sidecar.Commitments, myBlobCommit)
+		sidecar.Proofs = append(sidecar.Proofs, myBlobProof)
+	}
+
+	gasPrice, err := client.SuggestGasPrice(context.Background())
+	if err != nil {
+		log.Fatal("Failed to get suggested gas price:", err)
+	}
+
+	gasTip, err := client.SuggestGasTipCap(context.Background())
+	if err != nil {
+		log.Fatal("Failed to get suggested gas tip:", err)
+	}
+
+	blobFee, err := client.BlobBaseFee(context.Background())
+	if err != nil {
+		log.Fatal("Failed to get blob base fee:", err)
 	}
 
 	signedTx, _ := types.SignNewTx(privateKey, types.LatestSignerForChainID(chainID), &types.BlobTx{
 		Nonce:      nonce,
 		To:         to,
-		GasTipCap:  uint256.NewInt(1000000),
-		GasFeeCap:  uint256.NewInt(1000000000),
+		GasTipCap:  uint256.MustFromBig(gasTip),
+		GasFeeCap:  uint256.MustFromBig(gasPrice),
 		Gas:        21000,
-		BlobFeeCap: uint256.NewInt(15),
+		BlobFeeCap: uint256.MustFromBig(blobFee),
 		BlobHashes: sidecar.BlobHashes(),
-		Sidecar:    sidecar,
+		Sidecar:    &sidecar,
 	})
 
 	err = client.SendTransaction(context.Background(), signedTx)
@@ -81,13 +97,13 @@ func blobTx() {
 		log.Fatal("Failed to send trx:", err)
 	}
 
-	log.Println("Trx Hash:", signedTx.Hash())
+	log.Printf("Blob Tx: \033[1;34m%s\033[0m\n", signedTx.Hash())
 
 	for {
 		r, err := client.TransactionReceipt(context.Background(), signedTx.Hash())
 		if err != nil {
 			if err == ethereum.NotFound {
-				log.Println("Receipt not available")
+				log.Println("Receipt not available. Will try after 5s..")
 				time.Sleep(5 * time.Second)
 				continue
 			} else {
@@ -96,7 +112,7 @@ func blobTx() {
 		}
 
 		if r.Status == 1 {
-			log.Println("Transaction success for", r.TxHash)
+			log.Println("\033[1;32mTransaction succeeded!!\033[0m")
 			break
 		}
 
@@ -113,7 +129,7 @@ func blobTx() {
 		log.Fatal("Failed to verify blob hashes")
 	}
 
-	log.Println(">>> Type 0x3 Transaction: END <<<")
+	log.Println("\033[1;36m>>> Type 0x3 Transaction: END <<<\033[0m")
 }
 
 func main() {
