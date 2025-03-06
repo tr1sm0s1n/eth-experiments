@@ -3,15 +3,14 @@ package utils
 import (
 	"crypto/ecdsa"
 	"errors"
-	"os"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func DialClient() (*ethclient.Client, error) {
-	client, err := ethclient.Dial(os.Getenv("RPC_URL"))
+func DialClient(rawurl string) (*ethclient.Client, error) {
+	client, err := ethclient.Dial(rawurl)
 	if err != nil {
 		return nil, err
 	}

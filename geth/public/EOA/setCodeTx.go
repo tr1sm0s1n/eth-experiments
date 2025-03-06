@@ -54,7 +54,10 @@ func init() {
 func setCodeTx() {
 	log.Println("\033[1;36m>>> Type 0x4 Transaction: BEGIN <<<\033[0m")
 
-	client, err := utils.DialClient()
+	rpcURL := os.Getenv("RPC_URL")
+	log.Printf("RPC URL: \033[1;31m%s\033[0m\n", rpcURL)
+
+	client, err := utils.DialClient(rpcURL)
 	if err != nil {
 		log.Fatal("Failed to dial client:", err)
 	}

@@ -26,13 +26,22 @@ func init() {
 func blobTx() {
 	log.Println("\033[1;36m>>> Type 0x3 Transaction: BEGIN <<<\033[0m")
 
+	rpcURL := os.Getenv("RPC_URL")
+	log.Printf("RPC URL: \033[1;31m%s\033[0m\n", rpcURL)
+
 	myBlob := new(kzg4844.Blob)
 	copy(myBlob[:], "Hello, World!")
 
-	myBlobCommit, _ := kzg4844.BlobToCommitment(myBlob)
-	myBlobProof, _ := kzg4844.ComputeBlobProof(myBlob, myBlobCommit)
+	myBlobCommit, err := kzg4844.BlobToCommitment(myBlob)
+	if err != nil {
+		log.Println("Failed to create the commitment:", err)
+	}
+	myBlobProof, err := kzg4844.ComputeBlobProof(myBlob, myBlobCommit)
+	if err != nil {
+		log.Println("Failed to create the KZG proof:", err)
+	}
 
-	client, err := utils.DialClient()
+	client, err := utils.DialClient(rpcURL)
 	if err != nil {
 		log.Fatal("Failed to dial client:", err)
 	}
@@ -60,7 +69,7 @@ func blobTx() {
 	to := common.HexToAddress("0x09778b53bbDFd17438c9e111995728ca80f6c5b1")
 
 	sidecar := types.BlobTxSidecar{}
-	for range 6 {
+	for range 9 {
 		sidecar.Blobs = append(sidecar.Blobs, *myBlob)
 		sidecar.Commitments = append(sidecar.Commitments, myBlobCommit)
 		sidecar.Proofs = append(sidecar.Proofs, myBlobProof)
