@@ -1,0 +1,8 @@
+services:
+  transactor:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: batch-transactor
+    restart: unless-stopped
+    entrypoint: "./batch_transactor"
