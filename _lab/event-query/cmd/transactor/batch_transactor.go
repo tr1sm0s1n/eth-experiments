@@ -64,24 +64,26 @@ func main() {
 	processCount := 0
 	currentBatch := make([][]string, 0, common.BatchSize)
 
-	for {
-		row, err := reader.Read()
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			log.Printf("Error reading row: %v", err)
-			continue
-		}
+	for range 10 {
+		for {
+			row, err := reader.Read()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				log.Printf("Error reading row: %v", err)
+				continue
+			}
 
-		currentBatch = append(currentBatch, row)
-		processCount++
+			currentBatch = append(currentBatch, row)
+			processCount++
 
-		if len(currentBatch) >= common.BatchSize {
-			// Send batch to workers
-			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", processCount-common.BatchSize, processCount)
-			payloadChan <- currentBatch
-			currentBatch = make([][]string, 0, common.BatchSize)
+			if len(currentBatch) >= common.BatchSize {
+				// Send batch to workers
+				log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", processCount-common.BatchSize, processCount)
+				payloadChan <- currentBatch
+				currentBatch = make([][]string, 0, common.BatchSize)
+			}
 		}
 	}
 
