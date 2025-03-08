@@ -25,7 +25,7 @@ var (
 	// Number of workers.
 	MaxWorkers = 7
 	// Number of rows taken for one transaction.
-	BatchSize = 1000
+	BatchSize = 200
 	// Block range for event log processing.
 	BlockRange int64 = 500
 	// Signature hash of the major event.
