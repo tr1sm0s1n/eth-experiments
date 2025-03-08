@@ -14,6 +14,11 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+type payload struct {
+	records [][]string
+	count   int
+}
+
 func main() {
 	client, err := ethclient.Dial(common.ProviderURL)
 	if err != nil {
@@ -40,7 +45,7 @@ func main() {
 	}
 
 	// Create channels for processing
-	payloadChan := make(chan [][]string, common.BatchSize)
+	payloadChan := make(chan payload)
 	errorsChan := make(chan error)
 
 	// Context for graceful shutdown
@@ -64,32 +69,29 @@ func main() {
 	processCount := 0
 	currentBatch := make([][]string, 0, common.BatchSize)
 
-	for range 10 {
-		for {
-			row, err := reader.Read()
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				log.Printf("Error reading row: %v", err)
-				continue
-			}
+	for {
+		row, err := reader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Printf("Error reading row: %v", err)
+			continue
+		}
 
-			currentBatch = append(currentBatch, row)
-			processCount++
+		currentBatch = append(currentBatch, row)
+		processCount++
 
-			if len(currentBatch) >= common.BatchSize {
-				// Send batch to workers
-				log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", processCount-common.BatchSize, processCount)
-				payloadChan <- currentBatch
-				currentBatch = make([][]string, 0, common.BatchSize)
-			}
+		if len(currentBatch) >= common.BatchSize {
+			// Send batch to workers
+			payloadChan <- payload{records: currentBatch, count: processCount}
+			currentBatch = make([][]string, 0, common.BatchSize)
 		}
 	}
 
 	// Send remaining payload
 	if len(currentBatch) > 0 {
-		payloadChan <- currentBatch
+		payloadChan <- payload{records: currentBatch, count: processCount}
 	}
 
 	// Clean up
@@ -100,7 +102,7 @@ func main() {
 	log.Printf("Processed \033[45m%d\033[0m payload!!", processCount)
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *common.Datastore, tnr common.Transactor, payload <-chan [][]string, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *common.Datastore, tnr common.Transactor, payload <-chan payload, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -111,13 +113,14 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			if !ok {
 				return
 			}
+			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-common.BatchSize, data.count)
 
 			auth, err := middlewares.AuthGenerator(client, tnr)
 			if err != nil {
 				errors <- fmt.Errorf("failed to generate auth: %v", err)
 			}
 
-			trx, err := instance.StoreData(auth, data)
+			trx, err := instance.StoreData(auth, data.records)
 			if err != nil {
 				errors <- fmt.Errorf("failed to store data: %v", err)
 			}
@@ -125,6 +128,8 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			if err := middlewares.WaitForReceipt(client, trx); err != nil {
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
 			}
+
+			log.Printf("Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-common.BatchSize, data.count)
 		}
 	}
 }
