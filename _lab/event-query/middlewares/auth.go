@@ -16,10 +16,10 @@ func AuthGenerator(client *ethclient.Client, tnr common.Transactor) (*bind.Trans
 	}
 
 	gasLimit := uint64(9270000)
-	gasPrice, err := client.SuggestGasPrice(context.Background())
-	if err != nil {
-		return nil, err
-	}
+	// gasPrice, err := client.SuggestGasPrice(context.Background())
+	// if err != nil {
+	// 	return nil, err
+	// }
 
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
@@ -34,7 +34,7 @@ func AuthGenerator(client *ethclient.Client, tnr common.Transactor) (*bind.Trans
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)
 	auth.GasLimit = gasLimit
-	auth.GasPrice = gasPrice
+	auth.GasPrice = big.NewInt(0)
 
 	return auth, nil
 }
