@@ -62,6 +62,12 @@ func setCodeTx() {
 		log.Fatal("Failed to dial client:", err)
 	}
 
+	version, err := utils.ClientVersion(client, context.Background())
+	if err != nil {
+		log.Fatal("Failed to fetch version:", err)
+	}
+	log.Printf("Client: \033[1;31m%s\033[0m\n", version)
+
 	chainID, err := client.ChainID(context.Background())
 	if err != nil {
 		log.Fatal("Failed to retrieve the chain ID:", err)

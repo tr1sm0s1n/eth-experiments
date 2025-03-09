@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"errors"
 
@@ -14,7 +15,6 @@ func DialClient(rawurl string) (*ethclient.Client, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return client, nil
 }
 
@@ -24,6 +24,14 @@ func AddressGenerator(privateKey *ecdsa.PrivateKey) (common.Address, error) {
 	if !ok {
 		return common.Address{}, errors.New("error casting public key to ECDSA")
 	}
-
 	return crypto.PubkeyToAddress(*publicKeyECDSA), nil
+}
+
+// will remove this after PR is accepted
+func ClientVersion(eth *ethclient.Client, ctx context.Context) (string, error) {
+	var version string
+	if err := eth.Client().CallContext(ctx, &version, "web3_clientVersion"); err != nil {
+		return "", err
+	}
+	return version, nil
 }
