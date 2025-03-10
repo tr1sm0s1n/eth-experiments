@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"math/big"
 	"os"
@@ -200,6 +201,38 @@ func waitForReceipt(client *ethclient.Client, tx common.Hash) {
 		log.Println("Status not committed. Will try after 5s..")
 		time.Sleep(5 * time.Second)
 	}
+}
+
+func txFetcher() {
+	rpcURL := os.Getenv("RPC_URL")
+	log.Printf("RPC URL: \033[1;31m%s\033[0m\n", rpcURL)
+
+	client, err := utils.DialClient(rpcURL)
+	if err != nil {
+		log.Fatal("Failed to dial client:", err)
+	}
+
+	version, err := utils.ClientVersion(client, context.Background())
+	if err != nil {
+		log.Fatal("Failed to fetch version:", err)
+	}
+	log.Printf("Client: \033[1;31m%s\033[0m\n", version)
+
+	txHash := os.Getenv("TX_HASH")
+	log.Printf("TX HASH: \033[1;31m%s\033[0m\n", txHash)
+	tx, isPending, err := client.TransactionByHash(context.Background(), common.HexToHash(txHash))
+	if err != nil {
+		log.Fatal("Failed to fetch version:", err)
+	}
+
+	if isPending {
+		log.Println("Tx is still pending")
+		return
+	}
+
+	auth := tx.SetCodeAuthorizations()
+	authJson, _ := json.Marshal(auth)
+	log.Printf("Auth: \033[1;36m%s\033[0m\n", authJson)
 }
 
 func main() {
