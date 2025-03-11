@@ -58,7 +58,7 @@ func main() {
 
 	// Start worker pool
 	var wg sync.WaitGroup
-	for i := 0; i < cmn.MaxWorkers; i++ {
+	for range cmn.MaxWorkers {
 		wg.Add(1)
 		go worker(ctx, &wg, client, instance, payloadChan, errorsChan)
 	}
