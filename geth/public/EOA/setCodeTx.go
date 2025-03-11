@@ -216,23 +216,22 @@ func txFetcher() {
 	if err != nil {
 		log.Fatal("Failed to fetch version:", err)
 	}
-	log.Printf("Client: \033[1;31m%s\033[0m\n", version)
+	log.Printf("Client: \033[1;34m%s\033[0m\n", version)
 
 	txHash := os.Getenv("TX_HASH")
-	log.Printf("TX HASH: \033[1;31m%s\033[0m\n", txHash)
+	log.Printf("Transaction Hash: \033[1;35m%s\033[0m\n", txHash)
 	tx, isPending, err := client.TransactionByHash(context.Background(), common.HexToHash(txHash))
 	if err != nil {
-		log.Fatal("Failed to fetch version:", err)
+		log.Fatal("Failed to fetch transaction:", err)
 	}
 
 	if isPending {
-		log.Println("Tx is still pending")
+		log.Println("Transaction is still pending")
 		return
 	}
 
-	auth := tx.SetCodeAuthorizations()
-	authJson, _ := json.Marshal(auth)
-	log.Printf("Auth: \033[1;36m%s\033[0m\n", authJson)
+	auth, _ := json.Marshal(tx.SetCodeAuthorizations())
+	log.Printf("Auth: \033[1;36m%s\033[0m\n", auth)
 }
 
 func main() {
