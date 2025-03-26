@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/holiman/uint256"
@@ -67,12 +67,7 @@ func setCode() {
 		return
 	}
 
-	opts, err := bind.NewKeyedTransactorWithChainID(bobKey, chainID)
-	if err != nil {
-		fmt.Println("Failed to create transaction signer:", err)
-		return
-	}
-
+	opts := bind.NewKeyedTransactor(bobKey, chainID)
 	opts.Nonce = big.NewInt(int64(bobNonce))
 	opts.Value = big.NewInt(0)
 	opts.GasLimit = gasLimit
@@ -85,7 +80,7 @@ func setCode() {
 		return
 	}
 
-	contractAddress, _, _, err := bind.DeployContract(opts, parsedABI, common.FromHex(bytecode), sim.Client())
+	contractAddress, _, err := bind.DeployContract(opts, common.FromHex(bytecode), sim.Client(), nil)
 	if err != nil {
 		fmt.Println("Failed to deploy contract:", err)
 		return

@@ -6,7 +6,7 @@ import (
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/tr1sm0s1n/eth-experiments/utils"
@@ -43,20 +43,15 @@ func accessListTx() {
 	}
 
 	sim, chainID := utils.GenerateBackend(from)
+	auth := bind.NewKeyedTransactor(key, chainID)
 
-	auth, err := bind.NewKeyedTransactorWithChainID(key, chainID)
-	if err != nil {
-		fmt.Println("Failed to create auth:", err)
-		return
-	}
-
-	parsed, err := StorageMetaData.GetAbi()
+	parsed, err := StorageMetaData.ParseABI()
 	if err != nil {
 		fmt.Println("Failed to parse metadata:", err)
 		return
 	}
 
-	caddress, _, storage, err := bind.DeployContract(auth, *parsed, common.FromHex(StorageMetaData.Bin), sim.Client())
+	caddress, _, err := bind.DeployContract(auth, common.FromHex(StorageMetaData.Bin), sim.Client(), nil)
 	if err != nil {
 		fmt.Println("Failed to deploy contract:", err)
 		return
@@ -110,9 +105,21 @@ func accessListTx() {
 		return
 	}
 
-	var out []interface{}
-	if err := storage.Call(nil, &out, "retrieve"); err != nil {
+	calldata, err := parsed.Pack("retrieve")
+	if err != nil {
+		fmt.Println("Failed to pack calldata:", err)
+		return
+	}
+
+	data, err := bind.NewBoundContract(caddress, *parsed, sim.Client(), nil, nil).CallRaw(nil, calldata)
+	if err != nil {
 		fmt.Println("Failed to retrieve message:", err)
+		return
+	}
+
+	out, err := parsed.Unpack("retrieve", data)
+	if err != nil {
+		fmt.Println("Failed to unpack data:", err)
 		return
 	}
 

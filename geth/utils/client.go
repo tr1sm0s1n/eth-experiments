@@ -27,7 +27,6 @@ func AddressGenerator(privateKey *ecdsa.PrivateKey) (common.Address, error) {
 	return crypto.PubkeyToAddress(*publicKeyECDSA), nil
 }
 
-// will remove this after PR is accepted
 func ClientVersion(eth *ethclient.Client, ctx context.Context) (string, error) {
 	var version string
 	if err := eth.Client().CallContext(ctx, &version, "web3_clientVersion"); err != nil {

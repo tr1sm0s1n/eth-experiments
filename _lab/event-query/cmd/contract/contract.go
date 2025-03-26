@@ -3,10 +3,12 @@ package main
 import (
 	"_lab/event-query/common"
 	"_lab/event-query/middlewares"
+	"context"
 	"encoding/csv"
 	"log"
 	"os"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -36,16 +38,24 @@ func deployContract() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	contractAddress, trx, _, err := common.DeployDatastore(auth, client)
+
+	deployParams := bind.DeploymentParams{
+		Contracts: []*bind.MetaData{&common.DatastoreMetaData},
+	}
+
+	deployer := bind.DefaultDeployer(auth, client)
+	result, err := bind.LinkAndDeploy(&deployParams, deployer)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := middlewares.WaitForReceipt(client, trx); err != nil {
+	if _, err := bind.WaitDeployed(context.Background(), client, result.Txs[common.DatastoreMetaData.ID].Hash()); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Contract Address: \033[32m%s\033[0m\n", contractAddress.String())
+	log.Printf("Contract Address: \033[32m%s\033[0m\n", result.Addresses[common.DatastoreMetaData.ID].Hex())
+	log.Println("Update '\033[33mContractAddress\033[0m' in 'common/config.go'.")
+
 }
 
 func writeContract() {
@@ -54,10 +64,8 @@ func writeContract() {
 		log.Fatal(err)
 	}
 
-	instance, err := common.NewDatastore(common.ContractAddress, client)
-	if err != nil {
-		log.Fatal(err)
-	}
+	ds := common.NewDatastore()
+	instance := ds.Instance(client, common.ContractAddress)
 
 	data, err := readCSV(common.CSVFile)
 	if err != nil {
@@ -76,12 +84,12 @@ func writeContract() {
 		log.Fatal(err)
 	}
 
-	trx, err := instance.StoreData(auth, chunk)
+	tx, err := bind.Transact(instance, auth, ds.PackStoreData(chunk))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := middlewares.WaitForReceipt(client, trx); err != nil {
+	if _, err := bind.WaitMined(context.Background(), client, tx.Hash()); err != nil {
 		log.Fatal(err)
 	}
 }

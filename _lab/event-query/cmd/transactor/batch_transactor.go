@@ -11,6 +11,7 @@ import (
 	"os"
 	"sync"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -19,16 +20,15 @@ type payload struct {
 	count   int
 }
 
+var ds = common.NewDatastore()
+
 func main() {
 	client, err := ethclient.Dial(common.ProviderURL)
 	if err != nil {
 		log.Fatalf("Failed to connect client: %v", err)
 	}
 
-	instance, err := common.NewDatastore(common.ContractAddress, client)
-	if err != nil {
-		log.Fatalf("Failed to create instance: %v", err)
-	}
+	instance := ds.Instance(client, common.ContractAddress)
 
 	// Open CSV file
 	file, err := os.Open(common.CSVFile)
@@ -102,7 +102,7 @@ func main() {
 	log.Printf("Processed \033[45m%d\033[0m payload!!", processCount)
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *common.Datastore, tnr common.Transactor, payload <-chan payload, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *bind.BoundContract, tnr common.Transactor, payload <-chan payload, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -120,7 +120,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				errors <- fmt.Errorf("failed to generate auth: %v", err)
 			}
 
-			trx, err := instance.StoreData(auth, data.records)
+			trx, err := bind.Transact(instance, auth, ds.PackStoreData(data.records))
 			if err != nil {
 				errors <- fmt.Errorf("failed to store data: %v", err)
 			}
