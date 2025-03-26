@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"os"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -17,12 +18,10 @@ func main() {
 
 	contractAddress := common.HexToAddress("0x6e38A457C722C6011B2dfa06d49240e797844d66")
 
-	instance, err := NewTerraNullius(contractAddress, client)
-	if err != nil {
-		log.Fatal("Failed to dial client:", err)
-	}
+	contract := NewTerraNullius()
+	instance := contract.Instance(client, contractAddress)
 
-	claim, err := instance.Claims(nil, big.NewInt(404))
+	claim, err := bind.Call(instance, nil, contract.PackClaims(big.NewInt(404)), contract.UnpackClaims)
 	if err != nil {
 		log.Fatal("Failed to dial client:", err)
 	}
