@@ -11,7 +11,7 @@ import (
 
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -109,11 +109,7 @@ func setCodeTx() {
 		log.Fatal("Failed to get gas price:", err)
 	}
 
-	opts, err := bind.NewKeyedTransactorWithChainID(secondKey, chainID)
-	if err != nil {
-		log.Fatal("Failed to create transaction signer:", err)
-	}
-
+	opts := bind.NewKeyedTransactor(secondKey, chainID)
 	opts.Nonce = big.NewInt(int64(secondNonce))
 	opts.Value = big.NewInt(0)
 	opts.GasLimit = gasLimit
@@ -125,7 +121,7 @@ func setCodeTx() {
 		log.Fatal("Failed to parse ABI:", err)
 	}
 
-	contractAddress, trx, _, err := bind.DeployContract(opts, parsedABI, common.FromHex(bytecode), client)
+	contractAddress, trx, err := bind.DeployContract(opts, common.FromHex(bytecode), client, nil)
 	if err != nil {
 		log.Fatal("Failed to deploy contract:", err)
 		return
