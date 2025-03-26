@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -22,6 +23,8 @@ type blockSpan struct {
 }
 
 var (
+	// Initialize the contract instance
+	ds = cmn.NewDatastore()
 	// Slice to store 'Stored' events
 	events []cmn.DatastoreStored
 	// To prevent race condition
@@ -38,12 +41,8 @@ func main() {
 		log.Fatalf("Failed to connect client: %v", err)
 	}
 
-	instance, err := cmn.NewDatastore(cmn.ContractAddress, client)
-	if err != nil {
-		log.Fatalf("Failed to create instance: %v", err)
-	}
-
-	dataRange, err := instance.EventCount(nil, cmn.ExamTitle)
+	instance := ds.Instance(client, cmn.ContractAddress)
+	dataRange, err := bind.Call(instance, nil, ds.PackEventCount(cmn.ExamTitle), ds.UnpackEventCount)
 	if err != nil {
 		log.Fatalf("Failed to query event count: %v", err)
 	}
@@ -60,7 +59,7 @@ func main() {
 	var wg sync.WaitGroup
 	for range cmn.MaxWorkers {
 		wg.Add(1)
-		go worker(ctx, &wg, client, instance, payloadChan, errorsChan)
+		go worker(ctx, &wg, client, payloadChan, errorsChan)
 	}
 
 	// Error handling goroutine
@@ -91,7 +90,7 @@ func main() {
 	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *cmn.Datastore, payload <-chan blockSpan, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, payload <-chan blockSpan, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -118,8 +117,8 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 
 			for _, l := range logs {
 				switch {
-				case l.Topics[0].Hex() == cmn.EventSignature.Hex() && l.Topics[1] == cmn.FilterTopic:
-					parsed, err := instance.ParseStored(l)
+				case l.Topics[1] == cmn.FilterTopic:
+					parsed, err := ds.UnpackStoredEvent(&l)
 					if err != nil {
 						errors <- fmt.Errorf("failed to parse logs: %v", err)
 					}
