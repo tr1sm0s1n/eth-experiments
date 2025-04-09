@@ -28,5 +28,5 @@ export PRIVATE_KEY_2=TBD
 Send a EOA account code transaction to the given network:
 
 ```sh
-cargo run --bin eoa_code
+cargo run --bin set_code
 ```
