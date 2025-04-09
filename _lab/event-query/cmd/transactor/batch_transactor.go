@@ -99,7 +99,7 @@ func main() {
 	wg.Wait()
 	close(errorsChan)
 
-	log.Printf("Processed \033[45m%d\033[0m payload!!", processCount)
+	log.Printf("Processed \033[1;36m%d\033[0m payload!!", processCount)
 }
 
 func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *bind.BoundContract, tnr common.Transactor, payload <-chan payload, errors chan<- error) {
@@ -113,7 +113,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			if !ok {
 				return
 			}
-			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-common.BatchSize, data.count)
+			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.records), data.count)
 
 			auth, err := middlewares.AuthGenerator(client, tnr)
 			if err != nil {
@@ -129,7 +129,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
 			}
 
-			log.Printf("Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-common.BatchSize, data.count)
+			log.Printf("Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.records), data.count)
 		}
 	}
 }

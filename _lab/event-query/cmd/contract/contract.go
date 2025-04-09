@@ -73,10 +73,7 @@ func writeContract() {
 		return
 	}
 
-	chunkSize := 10
-	if len(data) < chunkSize {
-		chunkSize = len(data)
-	}
+	chunkSize := min(len(data), 10)
 	chunk := data[:chunkSize]
 
 	auth, err := middlewares.AuthGenerator(client, common.Transactors[0])
