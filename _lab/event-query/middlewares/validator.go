@@ -11,7 +11,7 @@ import (
 	"sync"
 )
 
-func CSVValidator(lookupMap map[string]cmn.DatastoreStored, idColumn int, numWorkers int) (int64, int64, error) {
+func CSVValidator(lookupMap map[string]cmn.DataStoreStored, idColumn int, numWorkers int) (int64, int64, error) {
 	file, err := os.Open(cmn.CSVFile)
 	if err != nil {
 		return 0, 0, err

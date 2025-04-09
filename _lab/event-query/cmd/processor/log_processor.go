@@ -24,9 +24,9 @@ type blockSpan struct {
 
 var (
 	// Initialize the contract instance
-	ds = cmn.NewDatastore()
+	ds = cmn.NewDataStore()
 	// Slice to store 'Stored' events
-	events []cmn.DatastoreStored
+	events []cmn.DataStoreStored
 	// To prevent race condition
 	mu sync.Mutex
 )

@@ -14,8 +14,8 @@ use futures::stream::StreamExt;
 
 sol!(
     #[sol(rpc)]
-    Datastore,
-    "common/Datastore.json"
+    DataStore,
+    "common/DataStore.json"
 );
 
 #[tokio::main]
@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
     let filter = Filter::new()
         .address(CONTRACT_ADDRESS.parse::<Address>().unwrap())
         // By specifying an `event` or `event_signature` we listen for a specific event of the contract.
-        .event(Datastore::Stored::SIGNATURE)
+        .event(DataStore::Stored::SIGNATURE)
         .from_block(BlockNumberOrTag::Latest);
 
     // Subscribe to logs.
@@ -38,7 +38,7 @@ async fn main() -> Result<()> {
     println!("-----------------------");
 
     while let Some(log) = stream.next().await {
-        let parsed_log = Datastore::Stored::decode_log_data(log.data(), true).unwrap();
+        let parsed_log = DataStore::Stored::decode_log_data(log.data(), true).unwrap();
         println!("Event occured!!");
         println!("--------------------");
         println!("Exam No: \x1b[36m{:?}\x1b[0m", parsed_log.exam_no);

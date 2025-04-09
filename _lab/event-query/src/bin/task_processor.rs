@@ -15,12 +15,12 @@ use tokio::{
     spawn,
     sync::{Mutex, Semaphore},
 };
-use Datastore::Stored;
+use DataStore::Stored;
 
 sol!(
     #[sol(rpc)]
-    Datastore,
-    "common/Datastore.json"
+    DataStore,
+    "common/DataStore.json"
 );
 
 #[tokio::main]
@@ -32,7 +32,7 @@ async fn main() -> Result<()> {
 
     let rpc_url = RPC_URL.parse()?;
     let provider = ProviderBuilder::new().on_http(rpc_url);
-    let instance = Datastore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
+    let instance = DataStore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
 
     // Fetch range first to avoid repeated calls
     let range = instance.EventCount(EXAM_TITLE.to_string()).call().await?;
@@ -87,14 +87,14 @@ async fn fetch_logs(
     );
     let filter = Filter::new()
         .address(CONTRACT_ADDRESS.parse::<Address>()?)
-        .event(Datastore::Stored::SIGNATURE)
+        .event(DataStore::Stored::SIGNATURE)
         .from_block(start)
         .to_block(end);
 
     let logs = provider.get_logs(&filter).await?;
     for l in logs {
         if l.topics()[1] == filter_topic {
-            let parsed = Datastore::Stored::decode_log_data(l.data(), true)?;
+            let parsed = DataStore::Stored::decode_log_data(l.data(), true)?;
             let mut events_guard = events.lock().await;
             events_guard.push(parsed);
         }
