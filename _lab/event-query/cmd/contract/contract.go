@@ -40,7 +40,7 @@ func deployContract() {
 	}
 
 	deployParams := bind.DeploymentParams{
-		Contracts: []*bind.MetaData{&common.DatastoreMetaData},
+		Contracts: []*bind.MetaData{&common.DataStoreMetaData},
 	}
 
 	deployer := bind.DefaultDeployer(auth, client)
@@ -49,11 +49,11 @@ func deployContract() {
 		log.Fatal(err)
 	}
 
-	if _, err := bind.WaitDeployed(context.Background(), client, result.Txs[common.DatastoreMetaData.ID].Hash()); err != nil {
+	if _, err := bind.WaitDeployed(context.Background(), client, result.Txs[common.DataStoreMetaData.ID].Hash()); err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("Contract Address: \033[32m%s\033[0m\n", result.Addresses[common.DatastoreMetaData.ID].Hex())
+	log.Printf("Contract Address: \033[32m%s\033[0m\n", result.Addresses[common.DataStoreMetaData.ID].Hex())
 	log.Println("Update '\033[33mContractAddress\033[0m' in 'common/config.go'.")
 
 }
@@ -64,7 +64,7 @@ func writeContract() {
 		log.Fatal(err)
 	}
 
-	ds := common.NewDatastore()
+	ds := common.NewDataStore()
 	instance := ds.Instance(client, common.ContractAddress)
 
 	data, err := readCSV(common.CSVFile)

@@ -20,7 +20,7 @@ type payload struct {
 	count   int
 }
 
-var ds = common.NewDatastore()
+var ds = common.NewDataStore()
 
 func main() {
 	client, err := ethclient.Dial(common.ProviderURL)
