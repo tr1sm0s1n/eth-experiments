@@ -258,3 +258,7 @@ web_modules/
 
 # Profiling
 *.prof
+
+# Zig
+.zig-cache/
+zig-out/
