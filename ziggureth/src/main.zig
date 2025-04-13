@@ -9,7 +9,8 @@ pub fn main() !void {
 
     defer arena.deinit();
 
-    const rpc_url = "http://127.0.0.1:8545";
+    const args = try std.process.argsAlloc(allocator);
+    const rpc_url = args[1];
 
     var client = std.http.Client{
         .allocator = allocator,
