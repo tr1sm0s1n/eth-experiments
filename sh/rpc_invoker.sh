@@ -119,7 +119,11 @@ eth_getBlockByNumber() {
     return 0
 }
 
-# Config
+if [[ -z "$1" ]]; then
+    echo "$(logred [ERROR]): CHAIN_URL is required." 1>&2
+    exit 1
+fi
+
 CHAIN_URL="$1"
 
 execute
