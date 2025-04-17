@@ -21,7 +21,7 @@ async fn main() -> Result<()> {
     let sidecar = sidecar.build()?;
 
     let gas_price = provider.get_gas_price().await?;
-    let eip1559_est = provider.estimate_eip1559_fees(None).await?;
+    let eip1559_est = provider.estimate_eip1559_fees().await?;
     let tx = TransactionRequest::default()
         .with_to(address!("d8da6bf26964af9d7eed9e03e53415d37aa96045"))
         .with_max_fee_per_blob_gas(gas_price)
