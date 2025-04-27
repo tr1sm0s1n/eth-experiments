@@ -10,6 +10,9 @@ pub fn main() !void {
     defer arena.deinit();
 
     const args = try std.process.argsAlloc(allocator);
+    if (args.len < 2) {
+        return error.EmptyURL;
+    }
     const rpc_url = args[1];
 
     var client = std.http.Client{
