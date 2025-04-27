@@ -54,4 +54,15 @@ pub fn main() !void {
     );
 
     try writer.print("Block Number: \x1b[34m{s}\x1b[0m\n", .{response.value.result});
+
+    const header = try lib.latestHeader(
+        &client,
+        alloc,
+        rpc_url,
+    );
+
+    var header_string = std.ArrayList(u8).init(alloc);
+    try std.json.stringify(header, .{}, header_string.writer());
+
+    try writer.print("Latest Header: \x1b[32m{s}\x1b[0m\n", .{header_string.items});
 }
