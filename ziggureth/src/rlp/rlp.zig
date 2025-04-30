@@ -245,3 +245,80 @@ fn decodeItem(allocator: Allocator, data: []const u8, offset: *usize) !RlpItem {
         return RlpItem{ .list = try items.toOwnedSlice() };
     }
 }
+
+// Test encoding and decoding
+test "Test single byte" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    const test_byte = RlpItem{ .bytes = &[_]u8{0x42} };
+    const encoded = try encode(test_byte);
+    defer encoded.deinit();
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{0x42}, encoded.items);
+
+    const decoded = try decode(allocator, encoded.items);
+    defer decoded.deinit(allocator);
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{0x42}, decoded.bytes);
+}
+
+test "Test short string" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    const test_str = RlpItem{ .bytes = "zig" };
+    const encoded = try encode(test_str);
+    defer encoded.deinit();
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x83, 'z', 'i', 'g' }, encoded.items);
+
+    const decoded = try decode(allocator, encoded.items);
+    defer decoded.deinit(allocator);
+
+    try std.testing.expectEqualSlices(u8, "zig", decoded.bytes);
+}
+
+test "Test empty list" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    const empty_list = RlpItem{ .list = &[_]RlpItem{} };
+    const encoded = try encode(empty_list);
+    defer encoded.deinit();
+
+    try std.testing.expectEqualSlices(u8, &[_]u8{0xC0}, encoded.items);
+
+    const decoded = try decode(allocator, encoded.items);
+    defer decoded.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), decoded.list.len);
+}
+
+test "Test nested list" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var items = [_]RlpItem{
+        RlpItem{ .bytes = "hello" },
+        RlpItem{ .bytes = "world" },
+    };
+
+    const list = RlpItem{ .list = &items };
+    const encoded = try encode(list);
+    defer encoded.deinit();
+
+    const expected = [_]u8{ 0xCC, 0x85, 'h', 'e', 'l', 'l', 'o', 0x85, 'w', 'o', 'r', 'l', 'd' };
+    try std.testing.expectEqualSlices(u8, &expected, encoded.items);
+
+    const decoded = try decode(allocator, encoded.items);
+    defer decoded.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), decoded.list.len);
+    try std.testing.expectEqualSlices(u8, "hello", decoded.list[0].bytes);
+    try std.testing.expectEqualSlices(u8, "world", decoded.list[1].bytes);
+}
