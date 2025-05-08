@@ -1,0 +1,101 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "string[]",
+        "name": "landIds",
+        "type": "string[]"
+      },
+      {
+        "internalType": "string[]",
+        "name": "data",
+        "type": "string[]"
+      }
+    ],
+    "name": "addProperty",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "propertyId",
+        "type": "string"
+      }
+    ],
+    "name": "getAllPropertyVersions",
+    "outputs": [
+      {
+        "internalType": "string[]",
+        "name": "",
+        "type": "string[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "propertyId",
+        "type": "string"
+      }
+    ],
+    "name": "getLatestProperty",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "propertyId",
+        "type": "string"
+      }
+    ],
+    "name": "getPropertyVersions",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "propertyId",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "version",
+        "type": "uint256"
+      }
+    ],
+    "name": "getVersionProperty",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
