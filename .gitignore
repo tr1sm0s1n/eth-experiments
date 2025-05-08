@@ -228,6 +228,7 @@ jspm_packages/
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+bun.lock
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
