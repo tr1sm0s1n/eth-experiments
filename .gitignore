@@ -23,7 +23,7 @@ go.work.sum
 
 # Misc
 /tmp
-.env
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
