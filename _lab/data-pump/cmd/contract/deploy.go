@@ -15,7 +15,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	auth, err := common.GenerateAuth(client)
+	tr := common.Transactors[0]
+	auth, err := tr.NewAuth(client)
 	if err != nil {
 		log.Fatal(err)
 	}
