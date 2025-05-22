@@ -6,7 +6,7 @@ use alloy::{
     primitives::U256,
     providers::{Provider, ProviderBuilder},
     rpc::types::TransactionRequest,
-    signers::{local::PrivateKeySigner, SignerSync},
+    signers::{SignerSync, local::PrivateKeySigner},
     sol,
 };
 use eyre::Result;
@@ -41,7 +41,7 @@ async fn main() -> Result<()> {
     // Create a provider with the wallet for only Bob (not Alice).
     let rpc_url = env::var("RPC_URL")?.parse()?;
     let wallet = EthereumWallet::from(bob.clone());
-    let provider = ProviderBuilder::new().wallet(wallet).on_http(rpc_url);
+    let provider = ProviderBuilder::new().wallet(wallet).connect_http(rpc_url);
 
     // Deploy the contract Alice will authorize.
     let contract = Log::deploy(&provider).await?;
