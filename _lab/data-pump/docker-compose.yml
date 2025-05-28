@@ -1,0 +1,10 @@
+services:
+  deployer:
+    build: .
+    image: ${APP_CONTAINER}
+    container_name: ${APP_CONTAINER}
+    environment:
+      - CHAIN_ID=${CHAIN_ID}
+      - CHAIN_URL=${CHAIN_URL}
+      - PRIVATE_KEYS=${PRIVATE_KEYS}
+    entrypoint: '/app/deploy'
