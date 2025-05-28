@@ -8,3 +8,20 @@ services:
       - CHAIN_URL=${CHAIN_URL}
       - PRIVATE_KEYS=${PRIVATE_KEYS}
     entrypoint: '/app/deploy'
+
+  database:
+    image: postgres:latest
+    container_name: ${DB_CONTAINER}
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_PORT=${DB_PORT}
+    expose:
+      - ${DB_PORT}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+    name: ${DB_VOLUME}
