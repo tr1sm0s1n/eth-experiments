@@ -20,16 +20,18 @@ type Entry struct {
 }
 
 type Owner struct {
-	ID             string `json:"id"`
+	ID             string `json:"id" gorm:"primaryKey"`
+	EntryID        string `json:"-"`
 	Owner          string `json:"owner"`
 	OwnerFirstName string `json:"owner__first_name"`
 }
 
 type Property struct {
-	ID             string  `json:"id"`
+	ID             string  `json:"id" gorm:"primaryKey"`
+	EntryID        string  `json:"-"`
 	PropertyID     string  `json:"property_id"`
-	Parent         any     `json:"parent"`
-	Children       []any   `json:"children"`
+	Parent         any     `json:"parent" gorm:"-"`
+	Children       []any   `json:"children" gorm:"-"`
 	BlockNoCode    string  `json:"block_no__code"`
 	ResurveyNo     string  `json:"resurvey_no"`
 	SurveyType     string  `json:"survey_type"`
