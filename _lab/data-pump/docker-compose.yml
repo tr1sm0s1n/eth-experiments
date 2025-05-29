@@ -9,6 +9,7 @@ services:
       - LOOP_BOUND=${LOOP_BOUND}
       - ENTRY_PER_TX=${ENTRY_PER_TX}
       - PRIVATE_KEYS=${PRIVATE_KEYS}
+      - RECEIPT_INTERVAL=${RECEIPT_INTERVAL}
     entrypoint: '/app/deploy'
 
   pumper:
@@ -28,6 +29,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_PORT=${DB_PORT}
       - DB_CONTAINER=${DB_CONTAINER}
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS}
+      - RECEIPT_INTERVAL=${RECEIPT_INTERVAL}
     entrypoint: '/app/pumper'
 
   database:
