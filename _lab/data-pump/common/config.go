@@ -19,6 +19,8 @@ var (
 	ProviderURL     string
 	ContractAddress common.Address
 	Transactors     []Transactor
+	EntryPerTx      int
+	LoopBound       int
 )
 
 type Transactor struct {
@@ -48,13 +50,12 @@ func (t *Transactor) NewAuth(client *ethclient.Client) (*bind.TransactOpts, erro
 }
 
 func init() {
-	ida := os.Getenv("CHAIN_ID")
-	idi, err := strconv.Atoi(ida)
-	if err != nil {
-		log.Fatalf("Failed to parse chain ID: %v\n", err)
-	}
+	id := envToInt("CHAIN_ID")
+	chainID := big.NewInt(int64(id))
 
-	chainID := big.NewInt(int64(idi))
+	EntryPerTx = envToInt("ENTRY_PER_TX")
+	LoopBound = envToInt("LOOP_BOUND")
+
 	ProviderURL = os.Getenv("CHAIN_URL")
 	ContractAddress = common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
 
@@ -78,4 +79,13 @@ func init() {
 			},
 		)
 	}
+}
+
+func envToInt(env string) int {
+	v := os.Getenv(env)
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		log.Fatalf("Failed to parse %s: %v\n", env, err)
+	}
+	return i
 }
