@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,6 +22,7 @@ var (
 	Transactors     []Transactor
 	EntryPerTx      int
 	LoopBound       int
+	ReceiptInterval time.Duration
 )
 
 type Transactor struct {
@@ -36,7 +38,7 @@ func (t *Transactor) NewAuth(client *ethclient.Client) (*bind.TransactOpts, erro
 
 	t.Auth.Nonce = big.NewInt(int64(nonce))
 	t.Auth.Value = big.NewInt(0)
-	t.Auth.GasLimit = uint64(927000)
+	t.Auth.GasLimit = uint64(9300000)
 	t.Auth.GasPrice = big.NewInt(0)
 
 	/* In case of no-gas network, comment the following code. */
@@ -55,6 +57,7 @@ func init() {
 
 	EntryPerTx = envToInt("ENTRY_PER_TX")
 	LoopBound = envToInt("LOOP_BOUND")
+	ReceiptInterval = time.Duration(envToInt("RECEIPT_INTERVAL")) * time.Second
 
 	ProviderURL = os.Getenv("CHAIN_URL")
 	ContractAddress = common.HexToAddress(os.Getenv("CONTRACT_ADDRESS"))
