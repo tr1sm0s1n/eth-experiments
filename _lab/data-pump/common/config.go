@@ -66,13 +66,13 @@ func init() {
 	for k := range privateKeys {
 		privateKey, err := crypto.HexToECDSA(k)
 		if err != nil {
-			log.Fatalf("Failed to parse private key: %v\n", err)
+			log.Fatalf("\033[31m[ERR]\033[0m Failed to parse private key: %v\n", err)
 		}
 
 		publicKey := privateKey.Public()
 		publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 		if !ok {
-			log.Fatalln("Error casting public key to ECDSA")
+			log.Fatalln("\033[31m[ERR]\033[0m Error casting public key to ECDSA")
 		}
 
 		Transactors = append(Transactors,
@@ -88,7 +88,7 @@ func envToInt(env string) int {
 	v := os.Getenv(env)
 	i, err := strconv.Atoi(v)
 	if err != nil {
-		log.Fatalf("Failed to parse %s: %v\n", env, err)
+		log.Fatalf("\033[31m[ERR]\033[0m Failed to parse %s: %v\n", env, err)
 	}
 	return i
 }

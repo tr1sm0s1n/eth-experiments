@@ -29,14 +29,14 @@ var (
 func main() {
 	client, err := ethclient.Dial(common.ProviderURL)
 	if err != nil {
-		log.Fatalf("Failed to connect client: %v", err)
+		log.Fatalf("\033[31m[ERR]\033[0m Failed to connect client: %v", err)
 	}
 
 	instance := registry.Instance(client, common.ContractAddress)
 
 	dbConn, err = db.Connect()
 	if err != nil {
-		log.Fatal("Failed to connect the database")
+		log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
 	}
 
 	dbConn.AutoMigrate(&models.Entry{})
@@ -61,7 +61,7 @@ func main() {
 	// Error handling goroutine
 	go func() {
 		for err := range errorsChan {
-			log.Fatalf("Error: %v", err)
+			log.Fatalf("\033[31m[ERR]\033[0m Error: %v", err)
 		}
 	}()
 
@@ -81,7 +81,7 @@ func main() {
 	wg.Wait()
 	close(errorsChan)
 
-	log.Printf("Processed \033[1;36m%d\033[0m payload!!", processCount)
+	log.Printf("\033[32m[INF]\033[0m Processed \033[1;36m%d\033[0m payload!!", processCount)
 }
 
 func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *bind.BoundContract, tnr *common.Transactor, payload <-chan payload, errors chan<- error) {
@@ -95,7 +95,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			if !ok {
 				return
 			}
-			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
+			log.Printf("\033[32m[INF]\033[0m Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
 
 			auth, err := tnr.NewAuth(client)
 			if err != nil {
@@ -126,7 +126,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				errors <- fmt.Errorf("failed to store in db: %v", err)
 			}
 
-			log.Printf("Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
+			log.Printf("\033[32m[INF]\033[0m Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
 		}
 	}
 }

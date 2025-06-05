@@ -27,7 +27,7 @@ func Connect() (*gorm.DB, error) {
 			break
 		}
 
-		log.Println("Waiting for DB to be ready...")
+		log.Println("\033[33m[WRN]\033[0m Waiting for DB to be ready...")
 		time.Sleep(1 * time.Second)
 	}
 
