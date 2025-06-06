@@ -100,3 +100,6 @@ web_modules/
 
 # Profiling
 *.prof
+
+# Environments
+.env
