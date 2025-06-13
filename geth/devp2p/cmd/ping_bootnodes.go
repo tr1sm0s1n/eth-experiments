@@ -90,6 +90,9 @@ func main() {
 	connected := pingBootnodes(srv1, params.MainnetBootnodes)
 	fmt.Printf("Connected Mainnet Bootnodes: \033[36m%s\033[0m\n", connected)
 
+	connected = pingBootnodes(srv1, params.HoodiBootnodes)
+	fmt.Printf("Connected Hoodi Bootnodes: \033[36m%s\033[0m\n", connected)
+
 	connected = pingBootnodes(srv1, params.HoleskyBootnodes)
 	fmt.Printf("Connected Holesky Bootnodes: \033[36m%s\033[0m\n", connected)
 
