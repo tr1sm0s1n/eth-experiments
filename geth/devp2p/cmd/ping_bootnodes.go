@@ -88,17 +88,17 @@ func main() {
 	defer srv1.Stop()
 
 	connected := pingBootnodes(srv1, params.MainnetBootnodes)
-	fmt.Printf("Connected Mainnet Bootnodes: \033[36m%s\033[0m\n", connected)
+	fmt.Printf("Connected \033[35m%d\033[0m Mainnet Bootnode(s): \033[36m%v\033[0m\n", len(connected), connected)
 
 	connected = pingBootnodes(srv1, params.HoodiBootnodes)
-	fmt.Printf("Connected Hoodi Bootnodes: \033[36m%s\033[0m\n", connected)
+	fmt.Printf("Connected \033[35m%d\033[0m Hoodi Bootnode(s): \033[36m%v\033[0m\n", len(connected), connected)
 
 	connected = pingBootnodes(srv1, params.HoleskyBootnodes)
-	fmt.Printf("Connected Holesky Bootnodes: \033[36m%s\033[0m\n", connected)
+	fmt.Printf("Connected \033[35m%d\033[0m Holesky Bootnode(s): \033[36m%v\033[0m\n", len(connected), connected)
 
 	connected = pingBootnodes(srv1, params.SepoliaBootnodes)
-	fmt.Printf("Connected Sepolia Bootnodes: \033[36m%s\033[0m\n", connected)
+	fmt.Printf("Connected \033[35m%d\033[0m Sepolia Bootnode(s): \033[36m%v\033[0m\n", len(connected), connected)
 
 	connected = pingBootnodes(srv1, params.V5Bootnodes)
-	fmt.Printf("Connected V5 Bootnodes: \033[36m%s\033[0m\n", connected)
+	fmt.Printf("Connected \033[35m%d\033[0m V5 Bootnode(s): \033[36m%v\033[0m\n", len(connected), connected)
 }
