@@ -125,13 +125,13 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
 			}
 
-			for _, e := range data.entries {
-				d, err := bind.Call(instance, nil, registry.PackGetLatestProperty(e.ID), registry.UnpackGetLatestProperty)
-				if err != nil {
-					errors <- fmt.Errorf("failed to unpack latest property: %v", err)
-				}
-				log.Printf("Data: \033[1;36m%s\033[0m\n", d)
-			}
+			// for _, e := range data.entries {
+			// 	d, err := bind.Call(instance, nil, registry.PackGetLatestProperty(e.ID), registry.UnpackGetLatestProperty)
+			// 	if err != nil {
+			// 		errors <- fmt.Errorf("failed to unpack latest property: %v", err)
+			// 	}
+			// 	log.Printf("Data: \033[1;36m%s\033[0m\n", d)
+			// }
 
 			if res := dbConn.Create(&data.entries); res.Error != nil {
 				errors <- fmt.Errorf("failed to store in db: %v", err)
