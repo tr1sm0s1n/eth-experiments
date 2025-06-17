@@ -61,7 +61,10 @@ func main() {
 	// Error handling goroutine
 	go func() {
 		for err := range errorsChan {
-			log.Fatalf("\033[31m[ERR]\033[0m Error: %v", err)
+			if merr := helpers.SendAlert(err); merr != nil {
+				log.Printf("\033[31m[ERR]\033[0m Mail Error: %v\n", err)
+			}
+			log.Fatalf("\033[31m[ERR]\033[0m Error: %v\n", err)
 		}
 	}()
 
@@ -120,6 +123,14 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 
 			if err := helpers.ReceiptManager(client, trx); err != nil {
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
+			}
+
+			for _, e := range data.entries {
+				d, err := bind.Call(instance, nil, registry.PackGetLatestProperty(e.ID), registry.UnpackGetLatestProperty)
+				if err != nil {
+					errors <- fmt.Errorf("failed to unpack latest property: %v", err)
+				}
+				log.Printf("Data: \033[1;36m%s\033[0m\n", d)
 			}
 
 			if res := dbConn.Create(&data.entries); res.Error != nil {
