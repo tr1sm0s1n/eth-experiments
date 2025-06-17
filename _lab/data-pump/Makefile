@@ -15,7 +15,7 @@ deploy:
 ## pump: Pump data to the Registry smart contract.
 .PHONY: pump
 pump:
-	@$(COMPOSE) up database pumper --build
+	@$(COMPOSE) up database pumper --build -d
 
 ## enter: Enter the database.
 .PHONY: enter
