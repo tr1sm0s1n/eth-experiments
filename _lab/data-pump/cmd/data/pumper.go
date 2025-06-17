@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"runtime"
 	"sync"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
@@ -88,6 +89,16 @@ func main() {
 }
 
 func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *bind.BoundContract, tnr *common.Transactor, payload <-chan payload, errors chan<- error) {
+	defer func() {
+		if r := recover(); r != nil {
+			buf := make([]byte, 4096)
+			n := runtime.Stack(buf, false)
+			stackTrace := string(buf[:n])
+
+			errors <- fmt.Errorf("%s panicked, trace: %s", tnr.ID, stackTrace)
+		}
+	}()
+
 	defer wg.Done()
 
 	for {
