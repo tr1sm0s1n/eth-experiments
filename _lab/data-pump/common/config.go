@@ -26,6 +26,7 @@ var (
 )
 
 type Transactor struct {
+	ID      string
 	Address common.Address
 	Auth    *bind.TransactOpts
 }
@@ -77,6 +78,7 @@ func init() {
 
 		Transactors = append(Transactors,
 			Transactor{
+				ID:      fmt.Sprintf("TNR-%s", k[:5]),
 				Address: crypto.PubkeyToAddress(*publicKeyECDSA),
 				Auth:    bind.NewKeyedTransactor(privateKey, chainID),
 			},
