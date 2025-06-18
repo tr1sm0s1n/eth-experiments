@@ -18,16 +18,17 @@ func ReceiptManager(client *ethclient.Client, trx *types.Transaction) error {
 	for {
 		r, err := client.TransactionReceipt(context.Background(), trx.Hash())
 		if err != nil {
-			switch err {
-			case ethereum.NotFound:
+			switch {
+			case errors.Is(err, ethereum.NotFound):
 				log.Printf("\033[32m[INF]\033[0m Receipt isn't available. Will check after the interval.\n")
 				time.Sleep(common.ReceiptInterval)
 				continue
-			case &url.Error{Err: io.EOF}:
-				log.Printf("\033[32m[WRN]\033[0m Chain isn't responding. Will check after the interval.\n")
-				time.Sleep(common.ReceiptInterval)
-				continue
 			default:
+				if urlErr, ok := err.(*url.Error); ok && errors.Is(urlErr.Err, io.EOF) {
+					log.Printf("\033[33m[WRN]\033[0m Chain isn't responding. Will check after the interval.\n")
+					time.Sleep(common.ReceiptInterval)
+					continue
+				}
 				return err
 			}
 		}
