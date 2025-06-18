@@ -13,7 +13,7 @@ func SendAlert(err error) error {
 	auth := smtp.PlainAuth("", os.Getenv("MAIL_USER"), os.Getenv("MAIL_PASS"), os.Getenv("MAIL_HOST"))
 
 	buf := bytes.NewBuffer(nil)
-	if _, err := fmt.Fprintf(buf, "Subject: [%s] lab/data-pumper: Error Occured!\n", time.Now().Format("02/01/2006")); err != nil {
+	if _, err := fmt.Fprintf(buf, "Subject: [ALERT-%s] Data Pumper Failure — Error Details Inside\n", time.Now().Format("02/01/2006")); err != nil {
 		return err
 	}
 
@@ -25,7 +25,30 @@ func SendAlert(err error) error {
 		return err
 	}
 
-	if _, err := fmt.Fprintf(buf, "<div style='font-size:large;font-family:EB Garamond;'><p>Dear all,</p><p>Unfortunately, the data pumper has experienced an error and crashed.</p><p>The error is as follows:</p><p><b><q>%s</q></b></p><p>Kindly resolve this error as soon as possible.</p><p>P.S. This is a system-genrated mail. Please do not reply.</p><br/>", err.Error()); err != nil {
+	if _, err := fmt.Fprintf(buf, `
+		<div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 16px; color: #333;">
+  		  <p>Hi team,</p>
+
+  		  <p>
+    		The <strong>Data Pumper</strong> service has encountered an unexpected error and has stopped running.
+  		  </p>
+
+  		  <p><strong>Error Details:</strong></p>
+  		  <blockquote style="background-color:#f9f9f9; border-left: 4px solid #d9534f; padding: 10px; margin: 10px 0;">
+    		<code style="font-family: Consolas, monospace; font-size: 14px;">%s</code>
+  		  </blockquote>
+
+  		  <p>
+    		Please investigate and resolve the issue at your earliest convenience to restore normal operation.
+  		  </p>
+
+  		  <hr style="border: none; border-top: 1px solid #ccc;" />
+
+  		  <p style="font-size: 13px; color: #888;">
+    		This is an automated notification sent by the monitoring system. Please do not reply to this email.
+  		  </p>
+		</div>
+	`, err.Error()); err != nil {
 		return err
 	}
 
