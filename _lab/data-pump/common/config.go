@@ -3,9 +3,12 @@ package common
 import (
 	"context"
 	"crypto/ecdsa"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"math/big"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +16,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
@@ -35,6 +39,11 @@ type Transactor struct {
 func (t *Transactor) NewAuth(client *ethclient.Client) (*bind.TransactOpts, error) {
 	nonce, err := client.PendingNonceAt(context.Background(), t.Address)
 	if err != nil {
+		if urlErr, ok := err.(*url.Error); ok && errors.Is(urlErr.Err, io.EOF) {
+			log.Printf("\033[33m[WRN]\033[0m Chain is unresponsive for querying the nonce. Trying again.\n")
+			time.Sleep(time.Second)
+			return t.NewAuth(client)
+		}
 		return nil, err
 	}
 
