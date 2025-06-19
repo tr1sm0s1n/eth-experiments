@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"gorm.io/gorm"
 )
@@ -111,7 +112,10 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			}
 			log.Printf("\033[32m[INF]\033[0m Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
 
-			auth, err := tnr.NewAuth(client)
+			auth, err := helpers.RetryOnEOF(func() (*bind.TransactOpts, error) {
+				return tnr.NewAuth(client)
+			}, helpers.DefaultRetryConfig())
+
 			if err != nil {
 				errors <- fmt.Errorf("failed to generate auth: %v", err)
 			}
@@ -127,12 +131,17 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				entries = append(entries, string(eb))
 			}
 
-			trx, err := bind.Transact(instance, auth, registry.PackAddProperty(ids, entries))
+			trx, err := helpers.RetryOnEOF(func() (*types.Transaction, error) {
+				return bind.Transact(instance, auth, registry.PackAddProperty(ids, entries))
+			}, helpers.DefaultRetryConfig())
+
 			if err != nil {
 				errors <- fmt.Errorf("failed to add property: %v", err)
 			}
 
-			if err := helpers.ReceiptManager(client, trx); err != nil {
+			if err := helpers.RetryOnEOFVoid(func() error {
+				return helpers.ReceiptManager(client, trx)
+			}, helpers.DefaultRetryConfig()); err != nil {
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
 			}
 
