@@ -11,5 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build cmd/data/pumper.go
 
 FROM alpine
 
+RUN apk add --no-cache tzdata
+ENV TZ=Asia/Kolkata
+
 COPY --from=builder /build/deploy /app/deploy
 COPY --from=builder /build/pumper /app/pumper

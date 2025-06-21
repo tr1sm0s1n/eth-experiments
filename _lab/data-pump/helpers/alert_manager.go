@@ -9,14 +9,12 @@ import (
 	"time"
 )
 
-var ist, _ = time.LoadLocation("Asia/Kolkata")
-
 func SendAlert(err error) error {
 	auth := smtp.PlainAuth("", os.Getenv("MAIL_USER"), os.Getenv("MAIL_PASS"), os.Getenv("MAIL_HOST"))
 
 	buf := bytes.NewBuffer(nil)
 	if _, err := fmt.Fprintf(buf, "Subject: [ALERT-%s] Data Pumper Failure — Error Details Inside\n",
-		time.Now().In(ist).Format("02/01/2006")); err != nil {
+		time.Now().Format("02/01/2006")); err != nil {
 		return err
 	}
 
