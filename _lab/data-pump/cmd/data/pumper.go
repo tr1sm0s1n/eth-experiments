@@ -112,7 +112,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			}
 			log.Printf("\033[32m[INF]\033[0m Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
 
-			auth, err := helpers.RetryOnEOF(func() (*bind.TransactOpts, error) {
+			auth, err := helpers.RetryOnError(func() (*bind.TransactOpts, error) {
 				return tnr.NewAuth(client)
 			}, helpers.DefaultRetryConfig())
 
@@ -131,7 +131,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				entries = append(entries, string(eb))
 			}
 
-			trx, err := helpers.RetryOnEOF(func() (*types.Transaction, error) {
+			trx, err := helpers.RetryOnError(func() (*types.Transaction, error) {
 				return bind.Transact(instance, auth, registry.PackAddProperty(ids, entries))
 			}, helpers.DefaultRetryConfig())
 
@@ -139,7 +139,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				errors <- fmt.Errorf("failed to add property: %v", err)
 			}
 
-			if err := helpers.RetryOnEOFVoid(func() error {
+			if err := helpers.RetryOnErrorVoid(func() error {
 				return helpers.ReceiptManager(client, trx)
 			}, helpers.DefaultRetryConfig()); err != nil {
 				errors <- fmt.Errorf("failed to fetch receipt: %v", err)

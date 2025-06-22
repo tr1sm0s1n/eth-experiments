@@ -1,9 +1,7 @@
 package helpers
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"time"
 )
 
@@ -21,7 +19,7 @@ func DefaultRetryConfig() RetryConfig {
 	}
 }
 
-func RetryOnEOF[T any](f func() (T, error), config RetryConfig) (T, error) {
+func RetryOnError[T any](f func() (T, error), config RetryConfig) (T, error) {
 	var result T
 	var err error
 
@@ -34,12 +32,8 @@ func RetryOnEOF[T any](f func() (T, error), config RetryConfig) (T, error) {
 			return result, err
 		}
 
-		if !errors.Is(err, io.EOF) {
-			return result, err
-		}
-
 		if attempt == config.maxRetries {
-			return result, fmt.Errorf("failed to retry after %d attempts", config.maxRetries+1)
+			return result, fmt.Errorf("%v (failed %d attempts)", err, config.maxRetries+1)
 		}
 
 		time.Sleep(delay)
@@ -49,8 +43,8 @@ func RetryOnEOF[T any](f func() (T, error), config RetryConfig) (T, error) {
 	return result, err
 }
 
-func RetryOnEOFVoid(fn func() error, config RetryConfig) error {
-	_, err := RetryOnEOF(func() (struct{}, error) {
+func RetryOnErrorVoid(fn func() error, config RetryConfig) error {
+	_, err := RetryOnError(func() (struct{}, error) {
 		return struct{}{}, fn()
 	}, config)
 	return err
