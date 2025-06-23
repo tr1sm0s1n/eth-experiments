@@ -112,26 +112,23 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			}
 			log.Printf("\033[32m[INF]\033[0m Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.entries)+1, data.count)
 
-			auth, err := helpers.RetryOnError(func() (*bind.TransactOpts, error) {
-				return tnr.NewAuth(client)
-			}, helpers.DefaultRetryConfig())
-
-			if err != nil {
-				errors <- fmt.Errorf("failed to generate auth: %v", err)
-			}
-
-			ids := make([]string, len(data.entries))
-			entries := make([]string, len(data.entries))
-			for _, e := range data.entries {
-				ids = append(ids, e.ID)
-				eb, err := json.Marshal(e)
-				if err != nil {
-					errors <- fmt.Errorf("failed to marshal entries: %v", err)
-				}
-				entries = append(entries, string(eb))
-			}
-
 			trx, err := helpers.RetryOnError(func() (*types.Transaction, error) {
+				auth, err := tnr.NewAuth(client)
+				if err != nil {
+					return nil, err
+				}
+
+				ids := make([]string, len(data.entries))
+				entries := make([]string, len(data.entries))
+				for _, e := range data.entries {
+					ids = append(ids, e.ID)
+					eb, err := json.Marshal(e)
+					if err != nil {
+						return nil, err
+					}
+					entries = append(entries, string(eb))
+				}
+
 				return bind.Transact(instance, auth, registry.PackAddProperty(ids, entries))
 			}, helpers.DefaultRetryConfig())
 
