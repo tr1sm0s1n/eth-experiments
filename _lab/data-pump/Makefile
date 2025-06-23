@@ -17,6 +17,13 @@ deploy:
 pump:
 	@$(COMPOSE) up database pumper --build -d
 
+## validate: Validate data from Registry smart contract.
+.PHONY: validate
+validate:
+	@$(COMPOSE) up validator --build
+	@sleep 1
+	@$(COMPOSE) down validator
+
 ## enter: Enter the database.
 .PHONY: enter
 enter:
