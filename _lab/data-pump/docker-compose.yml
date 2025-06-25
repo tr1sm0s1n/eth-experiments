@@ -41,7 +41,8 @@ services:
   validator:
     build: .
     image: ${APP_CONTAINER}
-    container_name: ${APP_CONTAINER}-validator
+    mem_limit: ${MEM_LIMIT}
+    cpus: ${NO_OF_CPUS}
     depends_on:
       - database
     environment:

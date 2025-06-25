@@ -20,9 +20,7 @@ pump:
 ## validate: Validate data from Registry smart contract.
 .PHONY: validate
 validate:
-	@$(COMPOSE) up validator --build
-	@sleep 1
-	@$(COMPOSE) down validator
+	@$(COMPOSE) up validator --scale validator=$(REPLICAS) --build
 
 ## enter: Enter the database.
 .PHONY: enter
