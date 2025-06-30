@@ -21,6 +21,7 @@ pump:
 .PHONY: validate
 validate:
 	@$(COMPOSE) up validator --scale validator=$(REPLICAS) --build
+	@./cmd/shell/post-validate.sh
 
 ## enter: Enter the database.
 .PHONY: enter
