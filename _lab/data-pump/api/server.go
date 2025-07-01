@@ -43,6 +43,9 @@ func main() {
 			v1.Get("/random", func(c *fiber.Ctx) error {
 				return fetchRandomData(c, registry, instance, dbConn)
 			})
+			v1.Get("/single/:id", func(c *fiber.Ctx) error {
+				return fetchSingleData(c, registry, instance)
+			})
 		}
 	}
 
@@ -67,6 +70,25 @@ func fetchRandomData(c *fiber.Ctx, registry *common.Registry, instance *bind.Bou
 
 	if !helpers.IsSubset(dbEntry, bcEntry) {
 		return c.Status(545).SendString("Data mismatch detected")
+	}
+
+	return c.Status(fiber.StatusOK).JSON(bcEntry)
+}
+
+func fetchSingleData(c *fiber.Ctx, registry *common.Registry, instance *bind.BoundContract) error {
+	id := c.Params("id")
+	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(id), registry.UnpackGetLatestProperty)
+	if err != nil {
+		return c.Status(515).SendString(err.Error())
+	}
+
+	if len(data) == 0 {
+		return c.Status(404).SendString("No data found")
+	}
+
+	var bcEntry models.Entry
+	if err := json.Unmarshal([]byte(data), &bcEntry); err != nil {
+		return c.Status(530).SendString(err.Error())
 	}
 
 	return c.Status(fiber.StatusOK).JSON(bcEntry)
