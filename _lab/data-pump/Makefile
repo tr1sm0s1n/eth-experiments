@@ -15,13 +15,18 @@ deploy:
 ## pump: Pump data to the Registry smart contract.
 .PHONY: pump
 pump:
-	@$(COMPOSE) up database pumper --build -d
+	@$(COMPOSE) up pumper --build -d
 
 ## validate: Validate data from Registry smart contract.
 .PHONY: validate
 validate:
 	@$(COMPOSE) up validator --scale validator=$(REPLICAS) --build
 	@./cmd/shell/post-validate.sh
+
+## api: Start API server for communication.
+.PHONY: api
+api:
+	@$(COMPOSE) up api --build -d
 
 ## enter: Enter the database.
 .PHONY: enter

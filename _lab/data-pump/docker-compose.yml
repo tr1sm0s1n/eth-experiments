@@ -60,6 +60,30 @@ services:
       - RECEIPT_INTERVAL=${RECEIPT_INTERVAL}
     entrypoint: '/app/validator'
 
+  api:
+    build: .
+    image: ${APP_CONTAINER}
+    container_name: ${APP_CONTAINER}-api
+    depends_on:
+      - database
+    environment:
+      - CHAIN_ID=${CHAIN_ID}
+      - CHAIN_URL=${CHAIN_URL}
+      - LOOP_BOUND=${LOOP_BOUND}
+      - ENTRY_PER_TX=${ENTRY_PER_TX}
+      - PRIVATE_KEYS=${PRIVATE_KEYS}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_CONTAINER=${DB_CONTAINER}
+      - CONTRACT_ADDRESS=${CONTRACT_ADDRESS}
+      - RECEIPT_INTERVAL=${RECEIPT_INTERVAL}
+      - API_PORT=${API_PORT}
+    entrypoint: '/app/server'
+    ports:
+      - ${API_PORT}:${API_PORT}
+
   database:
     image: postgres:latest
     container_name: ${DB_CONTAINER}
