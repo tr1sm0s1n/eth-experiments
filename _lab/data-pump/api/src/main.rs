@@ -77,9 +77,9 @@ sol!(
 );
 
 async fn instance_builder() -> Result<Instance> {
-    let rpc_url = env::var("RPC_URL")?.parse()?;
+    let chain_url = env::var("CHAIN_URL")?.parse()?;
 
-    let provider = ProviderBuilder::new().connect_http(rpc_url);
+    let provider = ProviderBuilder::new().connect_http(chain_url);
     let contract = Registry::new(env::var("CONTRACT_ADDRESS")?.parse()?, provider);
 
     Ok(contract)
@@ -92,12 +92,12 @@ async fn main() {
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "rust_dapp_api=debug,tower_http=debug".into()),
+                .unwrap_or_else(|_| "data_pump_api=debug,tower_http=debug".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let listener = tokio::net::TcpListener::bind(":8090").await.unwrap();
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8090").await.unwrap();
 
     tracing::debug!("Listening on {}", listener.local_addr().unwrap());
     axum::serve(listener, app(registry)).await.unwrap();
