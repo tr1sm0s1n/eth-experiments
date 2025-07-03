@@ -1,3 +1,5 @@
+pub mod models;
+
 use std::env;
 
 use alloy::{
@@ -18,6 +20,8 @@ use tower_http::trace::TraceLayer;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 use Registry::RegistryInstance;
+
+use crate::models::Entry;
 
 type Instance = RegistryInstance<
     FillProvider<
@@ -122,14 +126,16 @@ async fn ping() -> &'static str {
 async fn fetch_single(
     Path(id): Path<String>,
     State(instance): State<Instance>,
-) -> Result<Json<String>, (StatusCode, String)> {
+) -> Result<Json<Entry>, (StatusCode, String)> {
     let result = instance
         .getLatestProperty(id.clone())
         .call()
         .await
         .map_err(internal_error)?;
 
-    Ok(Json(result))
+    let entry: Entry = serde_json::from_str(&result).map_err(internal_error)?;
+
+    Ok(Json(entry))
 }
 
 fn internal_error<E>(err: E) -> (StatusCode, String)
