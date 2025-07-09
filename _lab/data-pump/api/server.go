@@ -16,6 +16,21 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	_ = iota
+	dbFault
+	chainFault
+	serverFault
+	otherFault
+)
+
+type response struct {
+	success bool
+	code    int
+	message string
+	data    any
+}
+
 func main() {
 	client, err := ethclient.Dial(common.ProviderURL)
 	if err != nil {
@@ -55,41 +70,75 @@ func main() {
 func fetchRandomData(c *fiber.Ctx, registry *common.Registry, instance *bind.BoundContract, dbConn *gorm.DB) error {
 	var dbEntry models.Entry
 	if err := dbConn.Order("RANDOM()").Preload("Ownership").Preload("Properties").First(&dbEntry).Error; err != nil {
-		return c.Status(500).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    dbFault,
+			message: err.Error(),
+		})
 	}
 
 	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(dbEntry.ID), registry.UnpackGetLatestProperty)
 	if err != nil {
-		return c.Status(515).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    chainFault,
+			message: err.Error(),
+		})
 	}
 
 	var bcEntry models.Entry
 	if err := json.Unmarshal([]byte(data), &bcEntry); err != nil {
-		return c.Status(530).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    serverFault,
+			message: err.Error(),
+		})
 	}
 
 	if !helpers.IsSubset(dbEntry, bcEntry) {
-		return c.Status(545).SendString("Data mismatch detected")
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    otherFault,
+			message: "Data mismatch detected",
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(bcEntry)
+	return c.Status(fiber.StatusOK).JSON(response{
+		success: true,
+		data:    bcEntry,
+	})
 }
 
 func fetchSingleData(c *fiber.Ctx, registry *common.Registry, instance *bind.BoundContract) error {
 	id := c.Params("id")
 	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(id), registry.UnpackGetLatestProperty)
 	if err != nil {
-		return c.Status(515).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    chainFault,
+			message: err.Error(),
+		})
 	}
 
 	if len(data) == 0 {
-		return c.Status(404).SendString("No data found")
+		return c.Status(fiber.StatusNotFound).JSON(response{
+			success: false,
+			code:    otherFault,
+			message: "No data found",
+		})
 	}
 
 	var bcEntry models.Entry
 	if err := json.Unmarshal([]byte(data), &bcEntry); err != nil {
-		return c.Status(530).SendString(err.Error())
+		return c.Status(fiber.StatusInternalServerError).JSON(response{
+			success: false,
+			code:    serverFault,
+			message: err.Error(),
+		})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(bcEntry)
+	return c.Status(fiber.StatusOK).JSON(response{
+		success: true,
+		data:    bcEntry,
+	})
 }
