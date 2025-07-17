@@ -2,7 +2,7 @@ package main
 
 import (
 	"_lab/data-pump/common"
-	"_lab/data-pump/db"
+	// "_lab/data-pump/db"
 	"_lab/data-pump/helpers"
 	"_lab/data-pump/models"
 	"encoding/json"
@@ -40,10 +40,10 @@ func main() {
 	registry := common.NewRegistry()
 	instance := registry.Instance(client, common.ContractAddress)
 
-	dbConn, err := db.Connect()
-	if err != nil {
-		log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
-	}
+	// dbConn, err := db.Connect()
+	// if err != nil {
+	// 	log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
+	// }
 
 	app := fiber.New()
 	app.Use(logger.New())
@@ -55,9 +55,9 @@ func main() {
 			v1.Get("/ping", func(c *fiber.Ctx) error {
 				return c.SendString("pong")
 			})
-			v1.Get("/random", func(c *fiber.Ctx) error {
-				return fetchRandomData(c, registry, instance, dbConn)
-			})
+			// v1.Get("/random", func(c *fiber.Ctx) error {
+			// 	return fetchRandomData(c, registry, instance, dbConn)
+			// })
 			v1.Get("/single/:id", func(c *fiber.Ctx) error {
 				return fetchSingleData(c, registry, instance)
 			})
