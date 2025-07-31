@@ -38,6 +38,32 @@ services:
       - MAIL_RECIPIENTS=${MAIL_RECIPIENTS}
     entrypoint: '/app/pumper'
 
+  injector:
+    build: .
+    image: ${APP_CONTAINER}
+    container_name: ${APP_CONTAINER}-injector
+    depends_on:
+      - database
+    environment:
+      - CHAIN_ID=${CHAIN_ID}
+      - AUTH_TOKEN=${AUTH_TOKEN}
+      - LOOP_BOUND=${LOOP_BOUND}
+      - EXTERNAL_API=${EXTERNAL_API}
+      - ENTRY_PER_TX=${ENTRY_PER_TX}
+      - PRIVATE_KEYS=${PRIVATE_KEYS}
+      - RECEIPT_INTERVAL=${RECEIPT_INTERVAL}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - DB_CONTAINER=${DB_CONTAINER}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_RECIPIENTS=${MAIL_RECIPIENTS}
+    entrypoint: '/app/injector'
+
   validator:
     build: .
     image: ${APP_CONTAINER}
