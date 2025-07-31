@@ -28,6 +28,11 @@ validate:
 api:
 	@$(COMPOSE) up api --build -d
 
+## inject: Inject data to external API.
+.PHONY: inject
+inject:
+	@$(COMPOSE) up injector --build -d
+
 ## enter: Enter the database.
 .PHONY: enter
 enter:
