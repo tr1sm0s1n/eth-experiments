@@ -41,9 +41,7 @@ func main() {
 		log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
 	}
 
-	dbConn.AutoMigrate(&models.Entry{})
-	dbConn.AutoMigrate(&models.Owner{})
-	dbConn.AutoMigrate(&models.Property{})
+	dbConn.AutoMigrate(&models.Entry{}, &models.Owner{}, &models.Property{}, &models.Relative{}, &models.TpEntry{})
 
 	// Create channels for processing
 	payloadChan := make(chan payload)
@@ -64,7 +62,7 @@ func main() {
 	go func() {
 		for err := range errorsChan {
 			if merr := helpers.SendAlert(err); merr != nil {
-				log.Printf("\033[31m[ERR]\033[0m Mail Error: %v\n", err)
+				log.Printf("\033[31m[ERR]\033[0m Mail Error: %v\n", merr)
 			}
 			log.Fatalf("\033[31m[ERR]\033[0m Error: %v\n", err)
 		}
