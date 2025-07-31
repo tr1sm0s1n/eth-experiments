@@ -27,22 +27,34 @@ type Owner struct {
 }
 
 type Property struct {
-	ID             string  `json:"id" gorm:"primaryKey"`
-	EntryID        string  `json:"-"`
-	PropertyID     string  `json:"property_id"`
-	Parent         any     `json:"parent" gorm:"-"`
-	Children       []any   `json:"children" gorm:"-"`
-	BlockNoCode    string  `json:"block_no__code"`
-	ResurveyNo     string  `json:"resurvey_no"`
-	SurveyType     string  `json:"survey_type"`
-	SubDivisionNo  string  `json:"sub_division_no"`
-	Area           float64 `json:"area"`
-	Type           string  `json:"type"`
-	Classification string  `json:"classification"`
-	BasicTaxRate   float64 `json:"basic_tax_rate"`
-	OwnedDate      string  `json:"owned_date"`
-	ForfeitedDate  string  `json:"forfeited_date"`
-	IsFreezed      bool    `json:"is_freezed"`
+	ID             string     `json:"id" gorm:"primaryKey"`
+	EntryID        string     `json:"-"`
+	PropertyID     string     `json:"property_id"`
+	Parent         Relative   `json:"parent" `
+	Children       []Relative `json:"children"`
+	BlockNoCode    string     `json:"block_no__code"`
+	ResurveyNo     string     `json:"resurvey_no"`
+	SurveyType     string     `json:"survey_type"`
+	SubDivisionNo  string     `json:"sub_division_no"`
+	Area           float64    `json:"area"`
+	Type           string     `json:"type"`
+	Classification string     `json:"classification"`
+	BasicTaxRate   float64    `json:"basic_tax_rate"`
+	OwnedDate      string     `json:"owned_date"`
+	ForfeitedDate  string     `json:"forfeited_date"`
+	IsFreezed      bool       `json:"is_freezed"`
+}
+
+type Relative struct {
+	ID         string  `json:"id" gorm:"primaryKey"`
+	PropertyID string  `json:"property_id"`
+	TpEntry    TpEntry `json:"tp_entry"`
+}
+
+type TpEntry struct {
+	ID         string `json:"id" gorm:"primaryKey"`
+	RelativeID string `json:"-"`
+	TpNo       string `json:"tp_no"`
 }
 
 func RandomEntry() Entry {
@@ -55,7 +67,6 @@ func RandomEntry() Entry {
 		VillageParentName:         randomString("Parent-", 2),
 		VillageParentDistrictName: randomString("District-", 2),
 		Ownership:                 generateOwners(),
-		CreatedAt:                 time.Now(),
 		Properties:                generateProperties(),
 	}
 }
@@ -78,8 +89,8 @@ func generateProperties() []Property {
 	props = append(props, Property{
 		ID:             uuid.NewString(),
 		PropertyID:     randomString("PID-", 5),
-		Parent:         nil,
-		Children:       []any{},
+		Parent:         Relative{},
+		Children:       []Relative{},
 		BlockNoCode:    randomString("BL-", 3),
 		ResurveyNo:     randomString("RS-", 3),
 		SurveyType:     randomPick([]string{"Private", "Government"}),
