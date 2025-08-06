@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/ethereum/go-ethereum v1.16.1
-	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.30.0
