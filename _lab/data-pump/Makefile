@@ -31,7 +31,7 @@ api:
 ## inject: Inject data to external API.
 .PHONY: inject
 inject:
-	@$(COMPOSE) up injector --build -d
+	@$(COMPOSE) up injector --build
 
 ## enter: Enter the database.
 .PHONY: enter
