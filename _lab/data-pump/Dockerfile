@@ -1,4 +1,4 @@
-ARG go_base_image=golang:1.24-alpine
+ARG go_base_image=golang:1.25-alpine
 
 FROM ${go_base_image} AS builder
 
