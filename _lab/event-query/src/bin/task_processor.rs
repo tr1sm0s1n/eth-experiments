@@ -2,13 +2,15 @@ use std::sync::Arc;
 
 use alloy::{
     primitives::{keccak256, Address, FixedBytes},
-    providers::{Provider, ProviderBuilder, RootProvider},
+    providers::{Provider, ProviderBuilder},
     rpc::types::Filter,
     sol,
     sol_types::SolEvent,
-    transports::http::{Client, Http},
 };
-use event_query::constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL};
+use event_query::{
+    constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL},
+    types::MyProvider,
+};
 use eyre::Result;
 use futures::{stream::FuturesUnordered, StreamExt};
 use tokio::{
@@ -31,7 +33,7 @@ async fn main() -> Result<()> {
     let mut fetch_futures = FuturesUnordered::new();
 
     let rpc_url = RPC_URL.parse()?;
-    let provider = ProviderBuilder::new().on_http(rpc_url);
+    let provider: MyProvider = ProviderBuilder::new().connect_http(rpc_url);
     let instance = DataStore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
 
     // Fetch range first to avoid repeated calls
@@ -75,7 +77,7 @@ async fn main() -> Result<()> {
 }
 
 async fn fetch_logs(
-    provider: &RootProvider<Http<Client>>,
+    provider: &MyProvider,
     filter_topic: FixedBytes<32>,
     events: &Arc<Mutex<Vec<Stored>>>,
     start: u64,
@@ -94,7 +96,7 @@ async fn fetch_logs(
     let logs = provider.get_logs(&filter).await?;
     for l in logs {
         if l.topics()[1] == filter_topic {
-            let parsed = DataStore::Stored::decode_log_data(l.data(), true)?;
+            let parsed = DataStore::Stored::decode_log_data(l.data())?;
             let mut events_guard = events.lock().await;
             events_guard.push(parsed);
         }

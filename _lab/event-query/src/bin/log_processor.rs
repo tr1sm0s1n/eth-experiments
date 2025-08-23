@@ -2,13 +2,15 @@ use std::cmp::min;
 
 use alloy::{
     primitives::{keccak256, Address, FixedBytes},
-    providers::{Provider, ProviderBuilder, RootProvider},
+    providers::{Provider, ProviderBuilder},
     rpc::types::Filter,
     sol,
     sol_types::SolEvent,
-    transports::http::{Client, Http},
 };
-use event_query::constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL};
+use event_query::{
+    constants::{BLOCK_RANGE, CONTRACT_ADDRESS, EXAM_TITLE, RPC_URL},
+    types::MyProvider,
+};
 use eyre::Result;
 use DataStore::Stored;
 
@@ -25,7 +27,7 @@ async fn main() -> Result<()> {
 
     // Create the provider.
     let rpc_url = RPC_URL.parse()?;
-    let provider = ProviderBuilder::new().on_http(rpc_url);
+    let provider: MyProvider = ProviderBuilder::new().connect_http(rpc_url);
     // Create the instance.
     let instance = DataStore::new(CONTRACT_ADDRESS.parse()?, provider.clone());
     // Fetch the block range.
@@ -60,7 +62,7 @@ async fn main() -> Result<()> {
 }
 
 async fn fetch_logs(
-    provider: &RootProvider<Http<Client>>,
+    provider: &MyProvider,
     filter_topic: FixedBytes<32>,
     events: &mut Vec<Stored>,
     start: u64,
@@ -75,7 +77,7 @@ async fn fetch_logs(
     let logs = provider.get_logs(&filter).await?;
     for l in logs {
         if l.topics()[1] == filter_topic {
-            let parsed = DataStore::Stored::decode_log_data(l.data(), true)?;
+            let parsed = DataStore::Stored::decode_log_data(l.data())?;
             events.push(parsed);
         }
     }

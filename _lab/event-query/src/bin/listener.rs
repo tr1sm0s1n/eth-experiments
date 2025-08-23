@@ -8,7 +8,10 @@ use alloy::{
     sol,
     sol_types::SolEvent,
 };
-use event_query::constants::{CONTRACT_ADDRESS, WS_URL};
+use event_query::{
+    constants::{CONTRACT_ADDRESS, WS_URL},
+    types::MyProvider,
+};
 use eyre::Result;
 use futures::stream::StreamExt;
 
@@ -22,7 +25,7 @@ sol!(
 async fn main() -> Result<()> {
     // Create the provider.
     let ws = WsConnect::new(WS_URL);
-    let provider = ProviderBuilder::new().on_ws(ws).await?;
+    let provider: MyProvider = ProviderBuilder::new().connect_ws(ws).await?;
 
     let filter = Filter::new()
         .address(CONTRACT_ADDRESS.parse::<Address>().unwrap())
@@ -38,7 +41,7 @@ async fn main() -> Result<()> {
     println!("-----------------------");
 
     while let Some(log) = stream.next().await {
-        let parsed_log = DataStore::Stored::decode_log_data(log.data(), true).unwrap();
+        let parsed_log = DataStore::Stored::decode_log_data(log.data()).unwrap();
         println!("Event occured!!");
         println!("--------------------");
         println!("Exam No: \x1b[36m{:?}\x1b[0m", parsed_log.exam_no);
