@@ -30,7 +30,7 @@ var (
 	jwtToken         string
 	dbConn           *gorm.DB
 	maxRetries       = 3
-	pingRoute        = "/api/v1/ping"
+	pingRoute        = "/ping"
 	jwtRoute         = "/api/v1/jwt/generate"
 	addPropertyRoute = "/api/v1/properties/add"
 )
@@ -186,8 +186,6 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *http.Client, payloa
 						time.Sleep(time.Duration(retryCount+1) * time.Second)
 						continue
 					}
-
-					log.Printf("\033[33m[ERR]\033[0m Error: %s\n", string(body))
 
 					var failure models.FailureResponse
 					if err := json.Unmarshal(body, &failure); err != nil {
