@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/kzg4844"
+	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
 	"github.com/joho/godotenv"
 	"github.com/tr1sm0s1n/eth-experiments/utils"
@@ -75,7 +76,7 @@ func blobTx() {
 	to := common.HexToAddress("0x09778b53bbDFd17438c9e111995728ca80f6c5b1")
 
 	sidecar := types.BlobTxSidecar{}
-	for range 9 {
+	for range params.BlobTxMaxBlobs {
 		sidecar.Blobs = append(sidecar.Blobs, *myBlob)
 		sidecar.Commitments = append(sidecar.Commitments, myBlobCommit)
 		sidecar.Proofs = append(sidecar.Proofs, myBlobProof)
