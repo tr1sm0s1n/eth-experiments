@@ -7,9 +7,9 @@ type (
 		Latency string `json:"latency"`
 	}
 
-	SuccessResponse struct {
+	TokenResponse struct {
 		Success bool   `json:"success"`
-		Data    string `json:"data,omitempty"`
+		Token   string `json:"token"`
 	}
 
 	FailureResponse struct {

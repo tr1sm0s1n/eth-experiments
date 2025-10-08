@@ -261,12 +261,12 @@ func generateJWT(client *http.Client) (string, error) {
 	}
 
 	if resp.StatusCode == http.StatusCreated {
-		var success models.SuccessResponse
+		var success models.TokenResponse
 		if err := json.Unmarshal(body, &success); err != nil {
 			return "", fmt.Errorf("failed to parse JWT success response: %v", err)
 		}
 
-		return success.Data, nil
+		return success.Token, nil
 	}
 
 	var failure models.FailureResponse
