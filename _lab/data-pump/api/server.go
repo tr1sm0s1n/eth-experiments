@@ -77,7 +77,7 @@ func fetchRandomData(c *fiber.Ctx, registry *common.Registry, instance *bind.Bou
 		})
 	}
 
-	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(dbEntry.ID), registry.UnpackGetLatestProperty)
+	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(dbEntry.CardNumber), registry.UnpackGetLatestProperty)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(response{
 			Success: false,

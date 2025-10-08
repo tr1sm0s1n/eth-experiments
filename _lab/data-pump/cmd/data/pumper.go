@@ -41,7 +41,16 @@ func main() {
 		log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
 	}
 
-	dbConn.AutoMigrate(&models.Entry{}, &models.Owner{}, &models.Property{}, &models.Relative{}, &models.TpEntry{})
+	dbConn.AutoMigrate(
+		&models.Entry{},
+		&models.Land{},
+		&models.Owner{},
+		&models.Block{},
+		&models.Village{},
+		&models.Taluk{},
+		&models.District{},
+		&models.Building{},
+	)
 
 	// Create channels for processing
 	payloadChan := make(chan payload)
@@ -119,7 +128,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 				ids := make([]string, len(data.entries))
 				entries := make([]string, len(data.entries))
 				for _, e := range data.entries {
-					ids = append(ids, e.ID)
+					ids = append(ids, e.CardNumber)
 					eb, err := json.Marshal(e)
 					if err != nil {
 						return nil, err

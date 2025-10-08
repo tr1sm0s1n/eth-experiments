@@ -36,7 +36,7 @@ func main() {
 
 	log.Printf("DB Data: \033[1;36m%v\033[0m\n", dbEntry)
 
-	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(dbEntry.ID), registry.UnpackGetLatestProperty)
+	data, err := bind.Call(instance, nil, registry.PackGetLatestProperty(dbEntry.CardNumber), registry.UnpackGetLatestProperty)
 	if err != nil {
 		log.Fatalf("\033[31m[ERR]\033[0m Failed to unpack latest property: %v", err)
 	}

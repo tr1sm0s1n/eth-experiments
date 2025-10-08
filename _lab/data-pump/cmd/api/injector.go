@@ -65,7 +65,14 @@ func main() {
 		log.Fatal("\033[31m[ERR]\033[0m Failed to connect the database")
 	}
 
-	dbConn.AutoMigrate(&models.Entry{}, &models.Owner{}, &models.Property{}, &models.Relative{}, &models.TpEntry{})
+	if err = dbConn.AutoMigrate(
+		&models.Entry{},
+		&models.Land{},
+		&models.Owner{},
+		&models.Building{},
+	); err != nil {
+		log.Fatalf("\033[31m[ERR]\033[0m Failed to auto migrate: %v", err)
+	}
 
 	// Create channels for processing
 	payloadChan := make(chan payload)
