@@ -157,7 +157,7 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *http.Client, payloa
 				}
 
 				switch res.StatusCode {
-				case http.StatusCreated:
+				case http.StatusAccepted:
 					if res := dbConn.Create(&data.entries); res.Error != nil {
 						errors <- fmt.Errorf("failed to store in db: %v", err)
 						break
