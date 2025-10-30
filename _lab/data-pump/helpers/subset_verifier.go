@@ -66,7 +66,7 @@ func compareSubset(a, b reflect.Value) bool {
 	case reflect.Bool:
 		return !b.Bool() || a.Bool() == b.Bool()
 
-	case reflect.Interface, reflect.Ptr:
+	case reflect.Interface, reflect.Pointer:
 		if b.IsNil() {
 			return true
 		}
