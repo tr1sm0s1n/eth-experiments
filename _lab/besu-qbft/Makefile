@@ -3,7 +3,7 @@ COMPOSE := docker compose
 .PHONY: besu-up
 ## besu-up: Start the Besu private QBFT network.
 besu-up:
-	@$(COMPOSE) up besu-qbft-1 besu-qbft-2 besu-qbft-3 besu-qbft-4 --build
+	@$(COMPOSE) up besu-qbft-1 besu-qbft-2 besu-qbft-3 besu-qbft-4 --build -d
 	@$(MAKE) besu-ip
 
 .PHONY: besu-down
