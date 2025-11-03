@@ -19,7 +19,7 @@ use DataStore::Stored;
 sol!(
     #[sol(rpc)]
     DataStore,
-    "common/DataStore.json"
+    "artifacts/DataStore.json"
 );
 
 async fn process_block_range(

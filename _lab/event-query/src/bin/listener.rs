@@ -18,7 +18,7 @@ use futures::stream::StreamExt;
 sol!(
     #[sol(rpc)]
     DataStore,
-    "common/DataStore.json"
+    "artifacts/DataStore.json"
 );
 
 #[tokio::main]
