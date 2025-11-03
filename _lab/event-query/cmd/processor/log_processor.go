@@ -1,7 +1,8 @@
 package main
 
 import (
-	cmn "_lab/event-query/common"
+	"_lab/event-query/artifacts"
+	"_lab/event-query/config"
 	"context"
 	"fmt"
 	"log"
@@ -12,9 +13,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type blockSpan struct {
@@ -23,10 +22,8 @@ type blockSpan struct {
 }
 
 var (
-	// Initialize the contract instance
-	ds = cmn.NewDataStore()
 	// Slice to store 'Stored' events
-	events []cmn.DataStoreStored
+	events []artifacts.DataStoreStored
 	// To prevent race condition
 	mu sync.Mutex
 )
@@ -36,13 +33,7 @@ func main() {
 	// pprof.StartCPUProfile(f)
 	// defer pprof.StopCPUProfile()
 
-	client, err := ethclient.Dial(cmn.ProviderURL)
-	if err != nil {
-		log.Fatalf("Failed to connect client: %v", err)
-	}
-
-	instance := ds.Instance(client, cmn.ContractAddress)
-	dataRange, err := bind.Call(instance, nil, ds.PackEventCount(cmn.ExamTitle), ds.UnpackEventCount)
+	dataRange, err := config.Transactors[0].GetRange(config.ExamTitle)
 	if err != nil {
 		log.Fatalf("Failed to query event count: %v", err)
 	}
@@ -57,9 +48,9 @@ func main() {
 
 	// Start worker pool
 	var wg sync.WaitGroup
-	for range cmn.MaxWorkers {
+	for range config.MaxWorkers {
 		wg.Add(1)
-		go worker(ctx, &wg, client, payloadChan, errorsChan)
+		go worker(ctx, &wg, config.Transactors[1], payloadChan, errorsChan)
 	}
 
 	// Error handling goroutine
@@ -72,11 +63,8 @@ func main() {
 	log.Printf("Data Range: [\033[1;36m%d\033[0m] -> [\033[1;36m%d\033[0m]\n", dataRange.Start.Int64(), dataRange.End.Int64())
 	span := blockSpan{start: dataRange.Start.Int64()}
 
-	for {
-		if span.start > dataRange.End.Int64() {
-			break
-		}
-		span.end = min(span.start+cmn.BlockRange, dataRange.End.Int64())
+	for span.start <= dataRange.End.Int64() {
+		span.end = min(span.start+config.BlockRange, dataRange.End.Int64())
 		log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", span.start, span.end)
 		payloadChan <- span
 		span.start = span.end + 1
@@ -90,7 +78,7 @@ func main() {
 	log.Printf("Retrieved \033[1;34m%d\033[0m event logs!!", len(events))
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, payload <-chan blockSpan, errors chan<- error) {
+func worker(ctx context.Context, wg *sync.WaitGroup, t *config.Transactor, payload <-chan blockSpan, errors chan<- error) {
 	defer wg.Done()
 
 	for {
@@ -106,19 +94,19 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, p
 				FromBlock: big.NewInt(span.start),
 				ToBlock:   big.NewInt(span.end),
 				Addresses: []common.Address{
-					cmn.ContractAddress,
+					config.ContractAddress,
 				},
 			}
 
-			logs, err := client.FilterLogs(context.Background(), query)
+			logs, err := t.Backend.FilterLogs(context.Background(), query)
 			if err != nil {
 				errors <- fmt.Errorf("failed to filter logs: %v", err)
 			}
 
 			for _, l := range logs {
-				switch {
-				case l.Topics[1] == cmn.FilterTopic:
-					parsed, err := ds.UnpackStoredEvent(&l)
+				switch l.Topics[1] {
+				case config.FilterTopic:
+					parsed, err := t.DataStore.UnpackStoredEvent(&l)
 					if err != nil {
 						errors <- fmt.Errorf("failed to parse logs: %v", err)
 					}
