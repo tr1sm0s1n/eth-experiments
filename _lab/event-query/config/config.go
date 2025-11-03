@@ -1,23 +1,30 @@
-package common
+package config
 
 import (
+	"_lab/event-query/artifacts"
+	"context"
 	"crypto/ecdsa"
 	"log"
+	"math/big"
+	"time"
 
+	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
-
-type Transactor struct {
-	Key     *ecdsa.PrivateKey
-	Address common.Address
-}
 
 var (
 	// Make sure aetherguild/druid is running.
-	ProviderURL = "http://127.0.0.1:8545"
+	providerURL = "http://127.0.0.1:8545"
 	// WebSocket URL for listener.
-	WebSocketURL = "ws://127.0.0.1:8546"
+	webSocketURL = "ws://127.0.0.1:8546"
+	// Chain ID of the network
+	chainID = big.NewInt(31337)
+	// Set this true if the chain doesn't concern with gas.
+	noGasNetwork = false
+	// Sleep time between querying for the receipt.
+	receiptInterval = 10 * time.Second
 	// Replace after deployment.
 	ContractAddress = common.HexToAddress("0x5FbDB2315678afecb367f032d93F642f64180aa3")
 	// Location of .csv file.
@@ -43,25 +50,34 @@ var (
 		"47e179ec197488593b187f80a00eb0da91f1b9d0b13f8733639f19c30a34926a",
 	}
 	// Transactors
-	Transactors []Transactor
+	Transactors []*Transactor
 )
 
 func init() {
+	ec, err := ethclient.Dial(providerURL)
+	if err != nil {
+		log.Fatalf("\033[31m[ERR]\033[0m Failed to dial chain: %v\n", err)
+	}
+	ds := artifacts.NewDataStore()
 	for _, k := range privateKeys {
 		privateKey, err := crypto.HexToECDSA(k)
 		if err != nil {
-			log.Fatalf("Failed to parse private key: %v", err)
+			log.Fatalf("\033[31m[ERR]\033[0m Failed to parse private key: %v", err)
 		}
 
 		publicKey := privateKey.Public()
 		publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 		if !ok {
-			log.Fatalln("Error casting public key to ECDSA")
+			log.Fatalln("\033[31m[ERR]\033[0m Error casting public key to ECDSA")
 		}
 
-		Transactors = append(Transactors, Transactor{
-			Key:     privateKey,
-			Address: crypto.PubkeyToAddress(*publicKeyECDSA),
+		Transactors = append(Transactors, &Transactor{
+			Ctx:       context.Background(),
+			Auth:      bind.NewKeyedTransactor(privateKey, chainID),
+			Backend:   ec,
+			Address:   crypto.PubkeyToAddress(*publicKeyECDSA),
+			Instance:  ds.Instance(ec, ContractAddress),
+			DataStore: ds,
 		})
 	}
 }
