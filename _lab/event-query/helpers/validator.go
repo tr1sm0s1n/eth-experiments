@@ -1,7 +1,8 @@
 package middlewares
 
 import (
-	cmn "_lab/event-query/common"
+	"_lab/event-query/artifacts"
+	"_lab/event-query/config"
 	"bufio"
 	"bytes"
 	"encoding/csv"
@@ -11,8 +12,8 @@ import (
 	"sync"
 )
 
-func CSVValidator(lookupMap map[string]cmn.DataStoreStored, idColumn int, numWorkers int) (int64, int64, error) {
-	file, err := os.Open(cmn.CSVFile)
+func CSVValidator(lookupMap map[string]artifacts.DataStoreStored, idColumn int, numWorkers int) (int64, int64, error) {
+	file, err := os.Open(config.CSVFile)
 	if err != nil {
 		return 0, 0, err
 	}
