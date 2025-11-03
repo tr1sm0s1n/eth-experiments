@@ -1,18 +1,13 @@
 package main
 
 import (
-	"_lab/event-query/common"
-	"_lab/event-query/middlewares"
+	"_lab/event-query/config"
 	"context"
 	"encoding/csv"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"sync"
-
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type payload struct {
@@ -20,18 +15,9 @@ type payload struct {
 	count   int
 }
 
-var ds = common.NewDataStore()
-
 func main() {
-	client, err := ethclient.Dial(common.ProviderURL)
-	if err != nil {
-		log.Fatalf("Failed to connect client: %v", err)
-	}
-
-	instance := ds.Instance(client, common.ContractAddress)
-
 	// Open CSV file
-	file, err := os.Open(common.CSVFile)
+	file, err := os.Open(config.CSVFile)
 	if err != nil {
 		log.Fatalf("Failed to open CSV file: %v", err)
 	}
@@ -54,20 +40,22 @@ func main() {
 
 	// Start worker pool
 	var wg sync.WaitGroup
-	for _, t := range common.Transactors {
+	for _, t := range config.Transactors {
+		t.Wg = &wg
+		t.Ctx = ctx
 		wg.Add(1)
-		go worker(ctx, &wg, client, instance, t, payloadChan, errorsChan)
+		go worker(t, payloadChan, errorsChan)
 	}
 
 	// Error handling goroutine
 	go func() {
 		for err := range errorsChan {
-			log.Printf("Error: %v", err)
+			log.Printf("Error: %v\n", err)
 		}
 	}()
 
 	processCount := 0
-	currentBatch := make([][]string, 0, common.BatchSize)
+	currentBatch := make([][]string, 0, config.BatchSize)
 
 	for {
 		row, err := reader.Read()
@@ -75,17 +63,17 @@ func main() {
 			break
 		}
 		if err != nil {
-			log.Printf("Error reading row: %v", err)
+			log.Printf("Error reading row: %v\n", err)
 			continue
 		}
 
 		currentBatch = append(currentBatch, row)
 		processCount++
 
-		if len(currentBatch) >= common.BatchSize {
+		if len(currentBatch) >= config.BatchSize {
 			// Send batch to workers
 			payloadChan <- payload{records: currentBatch, count: processCount}
-			currentBatch = make([][]string, 0, common.BatchSize)
+			currentBatch = make([][]string, 0, config.BatchSize)
 		}
 	}
 
@@ -102,12 +90,12 @@ func main() {
 	log.Printf("Processed \033[1;36m%d\033[0m payload!!", processCount)
 }
 
-func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, instance *bind.BoundContract, tnr common.Transactor, payload <-chan payload, errors chan<- error) {
-	defer wg.Done()
+func worker(t *config.Transactor, payload <-chan payload, errors chan<- error) {
+	defer t.Wg.Done()
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-t.Ctx.Done():
 			return
 		case data, ok := <-payload:
 			if !ok {
@@ -115,18 +103,8 @@ func worker(ctx context.Context, wg *sync.WaitGroup, client *ethclient.Client, i
 			}
 			log.Printf("Processing: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.records), data.count)
 
-			auth, err := middlewares.AuthGenerator(client, tnr)
-			if err != nil {
-				errors <- fmt.Errorf("failed to generate auth: %v", err)
-			}
-
-			trx, err := bind.Transact(instance, auth, ds.PackStoreData(data.records))
-			if err != nil {
-				errors <- fmt.Errorf("failed to store data: %v", err)
-			}
-
-			if err := middlewares.WaitForReceipt(client, trx); err != nil {
-				errors <- fmt.Errorf("failed to fetch receipt: %v", err)
+			if err := t.StoreData(data.records); err != nil {
+				errors <- err
 			}
 
 			log.Printf("Completed: [\033[1;32m%d\033[0m] -> [\033[1;31m%d\033[0m]\n", data.count-len(data.records), data.count)
