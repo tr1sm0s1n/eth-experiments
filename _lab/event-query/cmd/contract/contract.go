@@ -1,15 +1,10 @@
 package main
 
 import (
-	"_lab/event-query/common"
-	"_lab/event-query/middlewares"
-	"context"
+	"_lab/event-query/config"
 	"encoding/csv"
 	"log"
 	"os"
-
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/v2"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func main() {
@@ -29,45 +24,18 @@ func main() {
 }
 
 func deployContract() {
-	client, err := ethclient.Dial(common.ProviderURL)
+	contractAddress, err := config.Transactors[0].DeployContract()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Error: %v\n", err)
 	}
 
-	auth, err := middlewares.AuthGenerator(client, common.Transactors[0])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	deployParams := bind.DeploymentParams{
-		Contracts: []*bind.MetaData{&common.DataStoreMetaData},
-	}
-
-	deployer := bind.DefaultDeployer(auth, client)
-	result, err := bind.LinkAndDeploy(&deployParams, deployer)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := bind.WaitDeployed(context.Background(), client, result.Txs[common.DataStoreMetaData.ID].Hash()); err != nil {
-		log.Fatal(err)
-	}
-
-	log.Printf("Contract Address: \033[32m%s\033[0m\n", result.Addresses[common.DataStoreMetaData.ID].Hex())
+	log.Printf("Contract Address: \033[32m%s\033[0m\n", contractAddress)
 	log.Println("Update '\033[33mContractAddress\033[0m' in 'common/config.go'.")
 
 }
 
 func writeContract() {
-	client, err := ethclient.Dial(common.ProviderURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	ds := common.NewDataStore()
-	instance := ds.Instance(client, common.ContractAddress)
-
-	data, err := readCSV(common.CSVFile)
+	data, err := readCSV(config.CSVFile)
 	if err != nil {
 		log.Println("Error reading CSV:", err)
 		return
@@ -76,18 +44,8 @@ func writeContract() {
 	chunkSize := min(len(data), 10)
 	chunk := data[:chunkSize]
 
-	auth, err := middlewares.AuthGenerator(client, common.Transactors[0])
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	tx, err := bind.Transact(instance, auth, ds.PackStoreData(chunk))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if _, err := bind.WaitMined(context.Background(), client, tx.Hash()); err != nil {
-		log.Fatal(err)
+	if err := config.Transactors[0].StoreData(chunk); err != nil {
+		log.Fatalf("Error: %v\n", err)
 	}
 }
 
