@@ -4,11 +4,11 @@ version = "0.1.0"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "python-dotenv>=1.1.1",
-    "web3>=7.12.1",
+    "python-dotenv>=1.2.1",
+    "web3>=7.14.0",
 ]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.12.5",
+    "ruff>=0.14.5",
 ]
