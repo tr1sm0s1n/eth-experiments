@@ -3,7 +3,7 @@ module _lab/data-pump
 go 1.25.0
 
 require (
-	github.com/ethereum/go-ethereum v1.16.7
+	github.com/ethereum/go-ethereum v1.16.8
 	github.com/gofiber/fiber/v2 v2.52.9
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
